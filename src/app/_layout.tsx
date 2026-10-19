@@ -6,19 +6,29 @@ import { useFonts } from "expo-font";
 import { Stack } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { useEffect } from "react";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
 
+import { Toaster } from "@/lib/toast";
+import { useStoresHydrated } from "@/stores/use-stores-hydrated";
 import { fontAssets } from "@/theme/fonts";
 
 SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
-  const [loaded, error] = useFonts(fontAssets);
+  const [fontsLoaded, fontError] = useFonts(fontAssets);
+  const hydrated = useStoresHydrated();
+  const ready = (fontsLoaded || fontError !== null) && hydrated;
 
   useEffect(() => {
-    if (loaded || error) SplashScreen.hideAsync();
-  }, [loaded, error]);
+    if (ready) SplashScreen.hideAsync();
+  }, [ready]);
 
-  if (!loaded && !error) return null;
+  if (!ready) return null;
 
-  return <Stack screenOptions={{ headerShown: false }} />;
+  return (
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <Stack screenOptions={{ headerShown: false }} />
+      <Toaster />
+    </GestureHandlerRootView>
+  );
 }
