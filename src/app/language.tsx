@@ -50,7 +50,6 @@ const languages: Language[] = ISO6391.getLanguages(ISO6391.getAllCodes()).sort((
 
 const POPULAR = languages.filter((l) => featuredLanguageCodes.includes(l.code));
 const OTHERS = languages.filter((l) => !featuredLanguageCodes.includes(l.code));
-const DASHES = Array.from({ length: 26 });
 
 export default function LanguageScreen() {
   const router = useRouter();
@@ -101,8 +100,7 @@ export default function LanguageScreen() {
     const query = searchQuery.trim().toLocaleLowerCase();
     if (!query) {
       return [
-        { title: "Popular", data: POPULAR },
-        { title: "All languages", data: OTHERS },
+        { title: "Other languages", data: OTHERS },
       ];
     }
     const hits = languages.filter(({ code, name, nativeName }) =>
@@ -157,7 +155,7 @@ export default function LanguageScreen() {
             source={require("../../assets/images/Global Language Globe Smartphone.png")}
             contentFit="contain"
             accessibilityLabel="Multilingual globe illustration"
-            style={{ width: "100%", height: "100%" }}
+            style={{ width: "90%", height: "90%" }}
           />
       </View>
 
@@ -177,53 +175,66 @@ export default function LanguageScreen() {
           <Text className="font-jakarta-extrabold text-[25px] text-[#161315]">
             Choose Your <Text className="text-[#D3222C]">Language</Text>
           </Text>
-          <Text className="mt-2 font-jakarta-medium text-sm leading-[22px] text-[#463C40]">
-            Select the language you want to use in the app. You can change it anytime in Settings.
-          </Text>
-          <Text className="mt-3 font-jakarta-medium text-xs text-[#463C40]">
-            Hello · السلام علیکم · नमस्ते · হ্যালো · مرحبا
-          </Text>
+          {/* <Text className="mt-2 font-jakarta-medium text-[15px] leading-[22px] text-[#463C40]">
+            Choose a language. You can change it anytime in Settings.
+          </Text> */}
 
-          {/* language ticket */}
+          <Text className="mb-3 mt-5 font-jakarta-semibold text-sm text-[#463C40]">
+            Popular languages
+          </Text>
+          <View className="flex-row flex-wrap gap-2">
+            {POPULAR.map((language) => {
+              const isSelected = language.code === selectedLanguageCode;
+              return (
+                <Pressable
+                  key={language.code}
+                  accessibilityRole="radio"
+                  accessibilityState={{ checked: isSelected }}
+                  onPress={() => setSelectedLanguageCode(language.code)}
+                  className={`flex-row items-center rounded-full border px-3 py-2 ${
+                    isSelected ? "border-[#D3222C] bg-[#fff6f6]" : "border-[#ece5e7] bg-white"
+                  }`}>
+                  <Text
+                    className={`mr-2 font-jakarta-bold text-xs ${
+                      isSelected ? "text-[#D3222C]" : "text-[#463C40]"
+                    }`}>
+                    {language.code.toUpperCase()}
+                  </Text>
+                  <Text className="font-jakarta-semibold text-sm text-[#161315]">
+                    {language.nativeName || language.name}
+                  </Text>
+                </Pressable>
+              );
+            })}
+          </View>
+
+          {!featuredLanguageCodes.includes(selectedLanguageCode) && (
+            <Text className="mt-3 font-jakarta-medium text-sm text-[#463C40]">
+              Selected: {selected.nativeName || selected.name}
+            </Text>
+          )}
+
           <Pressable
             accessibilityRole="button"
-            accessibilityLabel={`Language, ${selected.name}. Tap to change`}
+            accessibilityLabel="Browse all languages"
             onPress={() => setSheetOpen(true)}
-            className="mt-6 rounded-2xl border border-[#D3222C] bg-[#fff6f6] active:opacity-80">
-            <View className="flex-row items-center justify-between px-5 pb-4 pt-4">
-              <View className="mr-3 flex-1">
-                <Text className="font-jakarta-bold text-[10px] uppercase tracking-widest text-[#463C40]">
-                  App language
-                </Text>
-                <Text className="mt-1 font-jakarta-extrabold text-[26px] text-[#161315]" numberOfLines={1}>
-                  {selected.nativeName || selected.name}
-                </Text>
-                <Text className="font-jakarta text-xs text-[#463C40]">{selected.name}</Text>
-              </View>
-              <View className="h-12 w-12 items-center justify-center rounded-2xl bg-[#D3222C]">
-                <Text className="font-jakarta-bold text-sm text-white">{selected.code.toUpperCase()}</Text>
-              </View>
-            </View>
-
-            {/* dashed tear line with notches */}
-            <View className="h-5 justify-center">
-              <View className="absolute -left-[11px] top-0 h-5 w-5 rounded-full bg-white" />
-              <View className="absolute -right-[11px] top-0 h-5 w-5 rounded-full bg-white" />
-              <View className="flex-row items-center justify-between px-5">
-                {DASHES.map((_, i) => (
-                  <View key={i} className="h-px w-2 bg-[#E8A5A9]" />
-                ))}
-              </View>
-            </View>
-
-            <View className="flex-row items-center justify-between px-5 pb-3 pt-2">
-              <Text className="font-jakarta-semibold text-xs text-[#463C40]">Tap to change language</Text>
-              <SymbolView
-                name={{ ios: "chevron.down", android: "keyboard_arrow_down", web: "keyboard_arrow_down" }}
-                tintColor={ACCENT}
-                size={18}
-              />
-            </View>
+            className="mt-3 min-h-12 flex-row items-center rounded-2xl border border-[#ece5e7] bg-white px-4 active:opacity-80">
+            <SymbolView
+              name={{ ios: "magnifyingglass", android: "search", web: "search" }}
+              tintColor={BODY}
+              size={18}
+            />
+            <Text className="ml-3 flex-1 font-jakarta-semibold text-base text-[#161315]">
+              More languages
+            </Text>
+            <Text className="font-jakarta-medium text-sm text-[#463C40]">
+              {languages.length} available
+            </Text>
+            <SymbolView
+              name={{ ios: "chevron.right", android: "chevron_right", web: "chevron_right" }}
+              tintColor={BODY}
+              size={18}
+            />
           </Pressable>
 
           <Pressable
