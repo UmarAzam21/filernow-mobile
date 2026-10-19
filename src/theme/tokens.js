@@ -8,6 +8,9 @@ const colors = {
     primary: "#C8102E", // same as dashboard --brand-primary
     "primary-light": "#FFB4C0", // dashboard --brand-primary-light
     "primary-tint": "#FFF6F6",
+    "primary-lighter": "#C8102E1A", // dashboard --brand-primary-lighter (10% alpha)
+    "primary-soft": "#EBA3A7", // banner placeholder background
+    "primary-deep": "#64163C", // shadow tint
     "text-dark": "#161315",
     "text-secondary": "#463C40",
     "page-bg": "#FBFCF9",

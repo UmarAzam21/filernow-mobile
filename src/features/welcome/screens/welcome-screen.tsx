@@ -1,64 +1,82 @@
+// nativeApp\src\features\welcome\screens\welcome-screen.tsx
+
 import { Image } from "expo-image";
 import { useRouter } from "expo-router";
 import { StatusBar } from "expo-status-bar";
-import { Pressable, Text, View, useWindowDimensions } from "react-native";
-import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
+import { FlatList, Pressable, Text, View } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { PrimaryButton } from "@/components/ui/primary-button";
-import { images } from "@/constants/images";
-import { FloatingChip } from "@/features/welcome/components/floating-chip";
-
-// the phone in the poster sits ~34.5% down; chips float beside it
-const CHIPS_TOP_RATIO = 0.345;
-
-const CHIPS = [
-    { label: "Hisaab", variant: "light", className: "" },
-    { label: "Bachat", variant: "light", className: "mr-4" },
-    { label: "Taraqqi", variant: "accent", className: "mr-1" },
-] as const;
+import { PaginationDots } from "@/features/welcome/components/pagination-dots";
+import { SlideCaption } from "@/features/welcome/components/slide-caption";
+import { SLIDES } from "@/features/welcome/data/slides";
+import { useAutoCarousel } from "@/features/welcome/hooks/use-auto-carousel";
 
 export default function WelcomeScreen() {
     const router = useRouter();
     const insets = useSafeAreaInsets();
-    const { height } = useWindowDimensions();
-    const chipsTop = insets.top + (height - insets.top) * CHIPS_TOP_RATIO;
+    const { listRef, scrollX, width, onScroll, onScrollBeginDrag, onMomentumScrollEnd } =
+        useAutoCarousel(SLIDES.length);
 
     return (
-        <View className="flex-1 bg-page-bg">
-            <StatusBar style="dark" />
+        <View className="flex-1 bg-primary-soft">
+            <StatusBar style="light" />
 
-            <Image
-                source={images.welcomePoster}
-                contentFit="cover"
-                contentPosition="top"
-                accessibilityLabel="Welcome animation"
-                style={{ position: "absolute", top: insets.top, left: 0, right: 0, bottom: 0 }}
-            />
-
-            <View
-                pointerEvents="none"
-                style={{ position: "absolute", top: chipsTop, right: 16 }}
-                className="items-end gap-2">
-                {CHIPS.map((chip) => (
-                    <FloatingChip key={chip.label} {...chip} />
-                ))}
+            {/* auto-scrolling full-screen banners */}
+            <View className="absolute inset-0">
+                <FlatList
+                    ref={listRef}
+                    data={SLIDES}
+                    horizontal
+                    pagingEnabled
+                    bounces={false}
+                    showsHorizontalScrollIndicator={false}
+                    keyExtractor={(slide) => slide.title}
+                    getItemLayout={(_, i) => ({ length: width, offset: width * i, index: i })}
+                    onScroll={onScroll}
+                    scrollEventThrottle={16}
+                    onScrollBeginDrag={onScrollBeginDrag}
+                    onMomentumScrollEnd={onMomentumScrollEnd}
+                    style={{ flex: 1 }}
+                    renderItem={({ item }) => (
+                        <Image
+                            source={item.image}
+                            contentFit="cover"
+                            contentPosition="top"
+                            style={{ width, height: "100%" }}
+                        />
+                    )}
+                />
             </View>
 
-            <SafeAreaView edges={["bottom"]} className="absolute inset-0 justify-end">
-                <View className="px-6 pb-3 pt-5">
-                    <PrimaryButton label="Get Started" onPress={() => router.push("/language")} />
-
-                    <Pressable
-                        accessibilityRole="button"
-                        // TODO: router.push("/login")
-                        className="mt-3 min-h-12 items-center justify-center">
-                        <Text className="font-jakarta-semibold text-sm text-text-dark">
-                            Already have an account?{" "}
-                            <Text className="font-jakarta-bold text-primary underline">Log in</Text>
-                        </Text>
-                    </Pressable>
+            {/* bottom sheet */}
+            <View
+                className="absolute inset-x-0 bottom-0 rounded-t-brand-32 bg-white px-6 pt-[22px] shadow-2xl shadow-primary-deep"
+                style={{ paddingBottom: Math.max(insets.bottom, 12) + 12 }}>
+                <View className="h-32">
+                    {SLIDES.map((slide, i) => (
+                        <SlideCaption key={slide.title} slide={slide} index={i} scrollX={scrollX} width={width} />
+                    ))}
                 </View>
-            </SafeAreaView>
+
+                <PaginationDots count={SLIDES.length} scrollX={scrollX} width={width} />
+
+                <PrimaryButton
+                    label="Let's get started!"
+                    align="start"
+                    onPress={() => router.push("/language")}
+                />
+
+                <Pressable
+                    accessibilityRole="button"
+                    // TODO: router.push("/login")
+                    className="items-center pt-3.5">
+                    <Text className="font-jakarta-medium text-sm text-text-secondary">
+                        Pehle se account hai?{" "}
+                        <Text className="font-jakarta-bold text-primary">Log in</Text>
+                    </Text>
+                </Pressable>
+            </View>
         </View>
     );
 }

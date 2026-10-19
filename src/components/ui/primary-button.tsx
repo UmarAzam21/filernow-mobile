@@ -8,9 +8,13 @@ import { colors } from "@/theme/tokens";
 
 const ARROW = { ios: "arrow.right", android: "arrow_forward", web: "arrow_forward" } as const;
 
-type Props = Omit<PressableProps, "children"> & { label: string; className?: string };
+type Props = Omit<PressableProps, "children"> & {
+    label: string;
+    align?: "center" | "start";
+    className?: string;
+};
 
-export function PrimaryButton({ label, className, ...rest }: Props) {
+export function PrimaryButton({ label, align = "center", className, ...rest }: Props) {
     return (
         <Pressable
             accessibilityRole="button"
@@ -19,7 +23,13 @@ export function PrimaryButton({ label, className, ...rest }: Props) {
                 className,
             )}
             {...rest}>
-            <Text className="flex-1 text-center font-jakarta-bold text-base text-white">{label}</Text>
+            <Text
+                className={cn(
+                    "flex-1 font-jakarta-bold text-base text-white",
+                    align === "center" ? "text-center" : "text-left",
+                )}>
+                {label}
+            </Text>
             <View className="h-10 w-10 items-center justify-center rounded-full bg-white">
                 <SymbolView name={ARROW} tintColor={colors.primary} size={18} />
             </View>

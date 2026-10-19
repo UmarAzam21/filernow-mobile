@@ -9,7 +9,6 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { LanguageRow } from "@/features/language/components/language-row";
 import {
     OTHERS,
-    POPULAR,
     languages,
     searchLanguages,
 } from "@/features/language/data/languages";
@@ -32,10 +31,7 @@ export function LanguageSheet({ visible, selectedCode, onSelect, onClose }: Prop
 
     const sections = useMemo(() => {
         if (!query.trim()) {
-            return [
-                { title: "Popular", data: POPULAR },
-                { title: "All languages", data: OTHERS },
-            ];
+            return [{ title: "Other languages", data: OTHERS }];
         }
         const hits = searchLanguages(query);
         return hits.length

@@ -30,3 +30,5 @@ export function searchLanguages(query: string): Language[] {
         [code, name, nativeName].some((v) => v.toLocaleLowerCase().includes(q)),
     );
 }
+
+export const isFeaturedLanguage = (code: LanguageCode) => FEATURED_CODES.includes(code);

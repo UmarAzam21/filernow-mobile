@@ -12,8 +12,13 @@ import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context"
 import { PrimaryButton } from "@/components/ui/primary-button";
 import { images } from "@/constants/images";
 import { LanguageSheet } from "@/features/language/components/language-sheet";
-import { LanguageTicket } from "@/features/language/components/language-ticket";
-import { DEFAULT_LANGUAGE_CODE, getLanguage } from "@/features/language/data/languages";
+import { MoreLanguagesButton } from "@/features/language/components/more-languages-button";
+import { PopularLanguages } from "@/features/language/components/popular-languages";
+import {
+    DEFAULT_LANGUAGE_CODE,
+    getLanguage,
+    isFeaturedLanguage,
+} from "@/features/language/data/languages";
 import { colors } from "@/theme/tokens";
 
 export default function LanguageScreen() {
@@ -54,7 +59,7 @@ export default function LanguageScreen() {
                     source={images.languageGlobe}
                     contentFit="contain"
                     accessibilityLabel="Multilingual globe illustration"
-                    style={{ width: "100%", height: "100%" }}
+                    style={{ width: "90%", height: "90%" }}
                 />
             </View>
 
@@ -74,14 +79,16 @@ export default function LanguageScreen() {
                     <Text className="font-jakarta-extrabold text-[25px] text-text-dark">
                         Choose Your <Text className="text-primary">Language</Text>
                     </Text>
-                    <Text className="mt-2 font-jakarta-medium text-sm leading-[22px] text-text-secondary">
-                        Select the language you want to use in the app. You can change it anytime in Settings.
-                    </Text>
-                    <Text className="mt-3 font-jakarta-medium text-xs text-text-secondary">
-                        Hello · السلام علیکم · नमस्ते · হ্যালো · مرحبا
-                    </Text>
 
-                    <LanguageTicket language={selected} onPress={() => setSheetOpen(true)} />
+                    <PopularLanguages selectedCode={selectedCode} onSelect={setSelectedCode} />
+
+                    {isFeaturedLanguage(selectedCode) ? null : (
+                        <Text className="mt-3 font-jakarta-medium text-sm text-text-secondary">
+                            Selected: {selected.nativeName || selected.name}
+                        </Text>
+                    )}
+
+                    <MoreLanguagesButton onPress={() => setSheetOpen(true)} />
 
                     <PrimaryButton
                         label="Continue"
