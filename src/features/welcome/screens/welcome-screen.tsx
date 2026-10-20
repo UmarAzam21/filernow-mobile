@@ -64,12 +64,13 @@ export default function WelcomeScreen() {
                 <PrimaryButton
                     label="Let's get started!"
                     align="start"
-                    onPress={() => router.push("/language")}
+                    onPress={() => router.push("/register")}
                 />
 
                 <Pressable
                     accessibilityRole="button"
-                    // TODO: router.push("/login")
+                    // same phone screen: a registered number goes to the login PIN
+                    onPress={() => router.push("/register")}
                     className="items-center pt-3.5">
                     <Text className="font-jakarta-medium text-sm text-text-secondary">
                         Pehle se account hai?{" "}
