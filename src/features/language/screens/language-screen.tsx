@@ -14,18 +14,20 @@ import { images } from "@/constants/images";
 import { LanguageSheet } from "@/features/language/components/language-sheet";
 import { MoreLanguagesButton } from "@/features/language/components/more-languages-button";
 import { PopularLanguages } from "@/features/language/components/popular-languages";
-import {
-    DEFAULT_LANGUAGE_CODE,
-    getLanguage,
-    isFeaturedLanguage,
-} from "@/features/language/data/languages";
+import { getLanguage, isFeaturedLanguage } from "@/features/language/data/languages";
 import { colors } from "@/theme/tokens";
+import { useAppStore } from "@/stores/app-store";
 
 export default function LanguageScreen() {
     const router = useRouter();
     const insets = useSafeAreaInsets();
-    const [selectedCode, setSelectedCode] = useState<LanguageCode>(DEFAULT_LANGUAGE_CODE);
+
+    const storedLanguage = useAppStore((s) => s.language);
+    const setLanguage = useAppStore((s) => s.setLanguage);
+    const completeOnboarding = useAppStore((s) => s.completeOnboarding);
+    const [selectedCode, setSelectedCode] = useState<LanguageCode>(storedLanguage);
     const [sheetOpen, setSheetOpen] = useState(false);
+
     const selected = getLanguage(selectedCode);
 
     return (
@@ -93,7 +95,11 @@ export default function LanguageScreen() {
                     <PrimaryButton
                         label="Continue"
                         className="mt-5"
-                    // TODO: persist selectedCode (store), then router.push(...)
+                        onPress={() => {
+                            setLanguage(selectedCode);
+                            completeOnboarding();
+                            router.replace("/home");
+                        }}
                     />
                 </View>
             </View>
