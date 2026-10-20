@@ -5,7 +5,7 @@ import { Text, View } from "react-native";
 
 type Props = { title: string; note?: string; headerTitle?: string };
 
-export function PlaceholderScreen({ title, note = "Coming in the next slice.", headerTitle }: Props) {
+export function PlaceholderScreen({ title, note = "Coming soon.", headerTitle }: Props) {
     return (
         <View className="flex-1 items-center justify-center bg-page-bg px-8">
             {headerTitle ? <Stack.Screen options={{ title: headerTitle }} /> : null}
