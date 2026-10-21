@@ -98,7 +98,8 @@ export default function LanguageScreen() {
                         onPress={() => {
                             setLanguage(selectedCode);
                             completeOnboarding();
-                            router.replace("/home");
+                            // router.replace("/home");
+                            router.replace("/register");
                         }}
                     />
                 </View>

@@ -1,3 +1,5 @@
+// nativeApp\src\features\auth\hooks\use-pin-entry.ts
+
 import { useEffect, useRef, useState } from "react";
 import { Animated } from "react-native";
 
@@ -24,7 +26,7 @@ export function usePinEntry({ onComplete, disabled = false, length = PIN_LENGTH 
 
   const reset = () => {
     setPin("");
-    setError(null);``
+    setError(null);
   };
 
   const fail = (message: string) => {

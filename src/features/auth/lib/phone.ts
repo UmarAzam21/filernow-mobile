@@ -1,3 +1,5 @@
+// nativeApp\src\features\auth\lib\phone.ts
+
 // Phone numbers are kept as 10 digits without the leading 0 / +92, e.g. "3001234567".
 
 /** "3001234567" -> "300 1234567" */

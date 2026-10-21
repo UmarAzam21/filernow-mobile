@@ -1,3 +1,5 @@
+// nativeApp\src\features\auth\components\pin-dots.tsx
+
 import { useEffect, useState } from "react";
 import { ActivityIndicator, Animated, Text, View } from "react-native";
 

@@ -1,3 +1,5 @@
+// nativeApp\src\app\(auth)\register.tsx
+
 import { router } from "expo-router";
 import RegisterScreen from "@/features/auth/components/register-screen";
 

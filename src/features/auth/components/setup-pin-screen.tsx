@@ -1,3 +1,5 @@
+// nativeApp\src\features\auth\components\setup-pin-screen.tsx
+
 import { ShieldCheck } from "lucide-react-native";
 import { useRef, useState } from "react";
 import { View } from "react-native";
