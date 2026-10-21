@@ -64,7 +64,8 @@ export default function WelcomeScreen() {
                 <PrimaryButton
                     label="Let's get started!"
                     align="start"
-                    onPress={() => router.push("/register")}
+                    // onPress={() => router.push("/register")}
+                    onPress={() => router.push("/language")}
                 />
 
                 <Pressable
