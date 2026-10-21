@@ -1,3 +1,5 @@
+// nativeApp\src\features\auth\lib\mock-auth.ts
+
 // Frontend-only stand-ins until the FastAPI endpoints are connected.
 // TODO: replace with real calls (POST /auth/start, /auth/register, /auth/login).
 

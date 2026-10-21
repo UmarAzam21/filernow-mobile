@@ -1,3 +1,5 @@
+// nativeApp\src\features\auth\components\pin-screen-layout.tsx
+
 import { Image } from "expo-image";
 import { StatusBar } from "expo-status-bar";
 import { ChevronLeft, type LucideIcon } from "lucide-react-native";

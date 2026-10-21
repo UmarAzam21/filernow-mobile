@@ -1,7 +1,8 @@
 // nativeApp\src\app\(tabs)\_layout.ts
 
-import { Tabs } from "expo-router";
+import { Redirect, Tabs } from "expo-router";
 import { SymbolView, type SymbolViewProps } from "expo-symbols";
+import { useAuthStore } from "@/features/auth/store/auth-store";
 
 import { colors } from "@/theme/tokens";
 
@@ -14,6 +15,9 @@ const TABS: TabDef[] = [
 ];
 
 export default function TabsLayout() {
+    const isSignedIn = useAuthStore((s) => s.phone !== null);
+    if (!isSignedIn) return <Redirect href="/" />;
+    
     return (
         <Tabs
             screenOptions={{

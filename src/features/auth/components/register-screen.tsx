@@ -1,8 +1,5 @@
-import { PlusJakartaSans_400Regular } from "@expo-google-fonts/plus-jakarta-sans/400Regular";
-import { PlusJakartaSans_500Medium } from "@expo-google-fonts/plus-jakarta-sans/500Medium";
-import { PlusJakartaSans_700Bold } from "@expo-google-fonts/plus-jakarta-sans/700Bold";
-import { PlusJakartaSans_800ExtraBold } from "@expo-google-fonts/plus-jakarta-sans/800ExtraBold";
-import { useFonts } from "expo-font";
+// nativeApp\src\features\auth\components\register-screen.tsx
+
 import { Image } from "expo-image";
 import { StatusBar } from "expo-status-bar";
 import { Lock } from "lucide-react-native";
@@ -69,12 +66,6 @@ export default function RegisterScreen({
   onContinue: (phone: string, exists: boolean) => void;
 }) {
   const insets = useSafeAreaInsets();
-  const [fontsLoaded] = useFonts({
-    PlusJakartaSans_400Regular,
-    PlusJakartaSans_500Medium,
-    PlusJakartaSans_700Bold,
-    PlusJakartaSans_800ExtraBold,
-  });
   const [phone, setPhone] = useState(""); // digits only, without 0 / +92
   const [focused, setFocused] = useState(false);
   const [touched, setTouched] = useState(false);
@@ -116,9 +107,6 @@ export default function RegisterScreen({
       if (timer) clearInterval(timer);
     };
   }, [wordOpacity, wordY]);
-
-  if (!fontsLoaded) return null;
-
 
   const onChange = (text: string) => {
     // keep digits only, drop a leading 0 (0300... -> 300...), max 10 digits

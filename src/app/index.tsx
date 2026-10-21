@@ -1,11 +1,14 @@
 // nativeApp\src\app\index.tsx
 
-// TODO: send to the tabs once onboarding is completed (persisted flag)
 import { Redirect } from "expo-router";
 
+import { useAuthStore } from "@/features/auth/store/auth-store";
 import { useAppStore } from "@/stores/app-store";
 
 export default function Index() {
   const hasOnboarded = useAppStore((s) => s.hasOnboarded);
-  return <Redirect href={hasOnboarded ? "/home" : "/welcome"} />;
+  const isSignedIn = useAuthStore((s) => s.phone !== null);
+
+  if (isSignedIn) return <Redirect href="/home" />;
+  return <Redirect href={hasOnboarded ? "/register" : "/welcome"} />;
 }
