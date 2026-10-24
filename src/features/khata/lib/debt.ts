@@ -1,7 +1,7 @@
 // nativeApp\src\features\khata\lib\debt.ts
 
 import { DEBT_CATEGORY_TYPE, DEBT_TYPE_META, IExpenseEntry } from "../expenseManagerTy";
-import { entrySortKey } from "@/lib/dateFmt";
+import { entrySortKey } from "@/lib/date-format";
 
 // Formats a raw numerical value into a standard Pakistani Rupee currency string layout with comma groups.
 export const pkr = (n: number) => `Rs ${n.toLocaleString("en-PK")}`;

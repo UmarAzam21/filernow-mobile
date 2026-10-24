@@ -13,10 +13,21 @@ const colors = {
     "primary-deep": "#64163C", // shadow tint
     "text-dark": "#161315",
     "text-secondary": "#463C40",
+    "text-secondary-muted": "#6B7280",
+    "text-secondary-muter": "#9CA3AF",
     "page-bg": "#FBFCF9",
     "surface-muted": "#F6F1F2",
     "border-clr": "#ECE5E7",
     "border-strong": "#DED2D6",
+
+    danger: "#DC2626",
+    "danger-bg": "#FEF2F2",
+    success: "#16A34A",
+    "success-bg": "#ECFDF3",
+    warning: "#F59E0B",
+    "warning-bg": "#FFFBEB",
+    info: "#2563EB",
+    "info-bg": "#EFF6FF",
 };
 
 const fontFamily = {

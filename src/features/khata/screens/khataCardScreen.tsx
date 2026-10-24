@@ -3,6 +3,7 @@
 import { Link, type Href } from "expo-router";
 import { SymbolView, type SymbolViewProps } from "expo-symbols";
 import { Pressable, ScrollView, Text, View } from "react-native";
+import { DataModeBar } from "@/features/khata/components/data-mode-bar"
 
 import { colors } from "@/theme/tokens";
 
@@ -38,6 +39,7 @@ const SECTIONS: Section[] = [
 export default function KhataCardScreen() {
     return (
         <ScrollView className="flex-1 bg-page-bg">
+            <DataModeBar />
             <View className="flex-row flex-wrap gap-3 p-4">
                 {SECTIONS.map((s) => (
                     <Link key={s.title} href={s.href} asChild>

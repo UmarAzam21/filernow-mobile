@@ -6,7 +6,8 @@ export type Language = { code: LanguageCode; name: string; nativeName: string };
 
 export const DEFAULT_LANGUAGE_CODE: LanguageCode = "en";
 
-const FEATURED_CODES: LanguageCode[] = ["en", "ur", "ar", "hi", "bn"];
+// const FEATURED_CODES: LanguageCode[] = ["en", "ur", "ar", "hi", "bn"];
+const FEATURED_CODES: LanguageCode[] = ["en", "ur", "ar", "hi"];
 
 const rank = (code: LanguageCode) => {
     const i = FEATURED_CODES.indexOf(code);

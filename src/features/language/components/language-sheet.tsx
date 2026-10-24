@@ -12,7 +12,7 @@ import {
     languages,
     searchLanguages,
 } from "@/features/language/data/languages";
-import { useSheetKeyboardLayout } from "@/features/language/hooks/use-sheet-keyboard-layout";
+import { useSheetKeyboardLayout } from "@/hooks/use-sheet-keyboard-layout";
 import { colors } from "@/theme/tokens";
 
 const ItemSeparator = () => <View className="h-2" />;
