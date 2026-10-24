@@ -1,6 +1,6 @@
 // nativeApp\src\features\notifications\lib\time-ago.ts
 
-import { localDate } from "@/lib/dateFmt";
+import { localDate } from "@/lib/date-format";
 
 /** "Just now", "10 min ago", "2 hours ago", "Yesterday", "3 days ago", then "12 Oct". */
 export function timeAgo(iso: string, now = new Date()) {
