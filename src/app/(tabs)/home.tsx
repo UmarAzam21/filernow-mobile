@@ -1,12 +1,19 @@
 // nativeApp\src\app\(tabs)\home.tsx
 
-import { PlaceholderScreen } from '@/components/ui/placeholder-screen'
+import { ScrollView } from "react-native";
+
+import { AdvanceServices } from "@/features/home/components/advance-services";
+import { KhataServices } from "@/features/home/components/khata-services";
+import { KhataShortcuts } from "@/features/home/components/khata-shortcuts";
+import { PromoBanner } from "@/features/home/components/promo-banner";
 
 export default function Home() {
     return (
-        <PlaceholderScreen
-            title='Home'
-            note='Dashboard overview comming soon'
-        />
-    )
+        <ScrollView className="flex-1 bg-page-bg" contentContainerClassName="gap-brand px-brand pb-6 pt-1">
+            <PromoBanner />
+            <KhataServices />
+            <KhataShortcuts />
+            <AdvanceServices />
+        </ScrollView>
+    );
 }
