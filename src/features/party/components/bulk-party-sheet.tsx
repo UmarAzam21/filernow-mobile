@@ -69,7 +69,14 @@ export function BulkPartySheet({ visible, existing, defaultType = "customer", on
             visible={visible}
             onClose={onClose}
             title="Bulk Party Add"
-            subtitle="Ek saath kai parties add karein">
+            subtitle="Ek saath kai parties add karein"
+            footer={
+                <FormButton
+                    label={ok.length ? `${ok.length} parties import karein` : "Pehle list likhein ya file upload karein"}
+                    disabled={ok.length === 0}
+                    onPress={run}
+                />
+            }>
             <Field label="Sab ki qism (jahan alag na likhi ho)">
                 <PartyTypeToggle value={type} onChange={setType} />
             </Field>
@@ -134,11 +141,11 @@ export function BulkPartySheet({ visible, existing, defaultType = "customer", on
                 </View>
             ) : null}
 
-            <FormButton
+            {/* <FormButton
                 label={ok.length ? `${ok.length} parties import karein` : "Pehle list likhein ya file upload karein"}
                 disabled={ok.length === 0}
                 onPress={run}
-            />
+            /> */}
         </BottomSheet>
     );
 }

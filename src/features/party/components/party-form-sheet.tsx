@@ -43,7 +43,13 @@ export function PartyFormSheet({ visible, party, defaultType = "customer", onClo
             visible={visible}
             onClose={onClose}
             title={party ? "Party Edit Karein" : "Nayi Party Add Karein"}
-            subtitle="Customer ya supplier ki detail likhein">
+            subtitle="Customer ya supplier ki detail likhein"
+            footer={
+                <FormButton
+                    label={party ? "Tabdeeliyan Save Karein" : "Party Save Karein"}
+                    onPress={handleSubmit(submit)}
+                />
+            }>
             <Field label="Party ka naam" required error={errors.name?.message}>
                 <Controller
                     control={control}
@@ -91,10 +97,10 @@ export function PartyFormSheet({ visible, party, defaultType = "customer", onClo
                 />
             </Field>
 
-            <FormButton
+            {/* <FormButton
                 label={party ? "Tabdeeliyan Save Karein" : "Party Save Karein"}
                 onPress={handleSubmit(submit)}
-            />
+            /> */}
         </BottomSheet>
     );
 }
