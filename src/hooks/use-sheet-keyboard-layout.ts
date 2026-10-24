@@ -1,6 +1,6 @@
-// nativeApp\src\features\language\hooks\use-sheet-keyboard-layout.ts
+// nativeApp\src\hooks\use-sheet-keyboard-layout.ts
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Keyboard, type LayoutChangeEvent, Platform, useWindowDimensions } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
@@ -29,7 +29,7 @@ export function useSheetKeyboardLayout() {
         setAreaH(h);
     };
 
-    const resetBase = () => setBaseH(0);
+    const resetBase = useCallback(() => setBaseH(0), []);
 
     // part of the keyboard still covering the area (0 if Android already resized the window)
     const area = areaH || height;

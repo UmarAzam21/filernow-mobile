@@ -1,7 +1,6 @@
 // nativeApp\src\app\(tabs)\settings.tsx
 
 import { Alert, Pressable, Text, View } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
 
 import { maskPhone } from "@/features/auth/lib/phone";
 import { useAuthStore } from "@/features/auth/store/auth-store";
@@ -17,7 +16,7 @@ export default function Settings() {
         ]);
 
     return (
-        <SafeAreaView edges={["top"]} className="flex-1 bg-page-bg">
+        <View className="flex-1 bg-page-bg">
             <View className="p-4">
                 <Text className="font-jakarta-extrabold text-xl text-text-dark">Settings</Text>
                 {phone ? (
@@ -31,6 +30,6 @@ export default function Settings() {
                     <Text className="font-jakarta-bold text-sm text-red-600">Log out</Text>
                 </Pressable>
             </View>
-        </SafeAreaView>
+        </View>
     );
 }

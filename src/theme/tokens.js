@@ -11,6 +11,7 @@ const colors = {
     "primary-lighter": "#C8102E1A", // dashboard --brand-primary-lighter (10% alpha)
     "primary-soft": "#EBA3A7", // banner placeholder background
     "primary-deep": "#64163C", // shadow tint
+    "accent-gold": "#E9A21B", // premium / crown icon
     "text-dark": "#161315",
     "text-secondary": "#463C40",
     "text-secondary-muted": "#6B7280",
@@ -36,6 +37,7 @@ const fontFamily = {
     "jakarta-semibold": ["PlusJakartaSans_600SemiBold"],
     "jakarta-bold": ["PlusJakartaSans_700Bold"],
     "jakarta-extrabold": ["PlusJakartaSans_800ExtraBold"],
+    wordmark: ["Comfortaa_700Bold"],
 };
 
 // Mobile-base values of the dashboard type scale (size + line-height only;

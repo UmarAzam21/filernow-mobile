@@ -1,7 +1,9 @@
 // nativeApp\src\app\(tabs)\_layout.ts
 
 import { Redirect, Tabs } from "expo-router";
+import { StatusBar } from "expo-status-bar";
 import { SymbolView, type SymbolViewProps } from "expo-symbols";
+import { AppHeader } from "@/components/header/app-header";
 import { useAuthStore } from "@/features/auth/store/auth-store";
 
 import { colors } from "@/theme/tokens";
@@ -19,9 +21,12 @@ export default function TabsLayout() {
     if (!isSignedIn) return <Redirect href="/" />;
     
     return (
+        <>
+        {/* Dark icons on the light header (auth screens switch it to light). */}
+        <StatusBar style="light"/>
         <Tabs
             screenOptions={{
-                headerShown: false,
+                header: () => <AppHeader />,
                 tabBarActiveTintColor: colors.primary,
                 tabBarInactiveTintColor: colors["text-secondary"],
                 tabBarStyle: { borderTopColor: colors["border-clr"] },
@@ -39,5 +44,6 @@ export default function TabsLayout() {
                 />
             ))}
         </Tabs>
+        </>
     );
 }
