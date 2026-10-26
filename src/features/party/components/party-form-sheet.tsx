@@ -6,7 +6,7 @@ import { Controller, useForm } from "react-hook-form";
 
 import { BottomSheet } from "@/components/ui/bottom-sheet";
 import { Field, FormButton, Input } from "@/components/ui/form";
-import type { IParty, NewParty, PartyType } from "@/features/khata/expenseManagerTy";
+import type { IParty, NewParty, PartyType } from "@/features/khata/types";
 import { PartyTypeToggle } from "@/features/party/components/party-type-toggle";
 import { type PartyFormValues, partySchema } from "@/features/party/schemas";
 

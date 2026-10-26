@@ -2,7 +2,7 @@
 
 import { z } from "zod";
 
-import { PARTY_TYPES } from "@/features/khata/expenseManagerTy";
+import { PARTY_TYPES } from "@/features/khata/types";
 
 export const partySchema = z.object({
     name: z.string().trim().min(2, "Party ka naam likhein (kam az kam 2 huroof)"),

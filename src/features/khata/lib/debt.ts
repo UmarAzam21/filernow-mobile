@@ -1,6 +1,6 @@
 // nativeApp\src\features\khata\lib\debt.ts
 
-import { DEBT_CATEGORY_TYPE, DEBT_TYPE_META, IExpenseEntry } from "../expenseManagerTy";
+import { DEBT_CATEGORY_TYPE, DEBT_TYPE_META, IExpenseEntry } from "../types";
 import { entrySortKey } from "@/lib/date-format";
 
 // Formats a raw numerical value into a standard Pakistani Rupee currency string layout with comma groups.

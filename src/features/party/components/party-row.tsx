@@ -3,7 +3,7 @@
 import { SymbolView } from "expo-symbols";
 import { Pressable, Text, View } from "react-native";
 
-import type { IParty } from "@/features/khata/expenseManagerTy";
+import type { IParty } from "@/features/khata/types";
 import { BalanceText } from "@/features/party/components/balance-text";
 import { colors } from "@/theme/tokens";
 

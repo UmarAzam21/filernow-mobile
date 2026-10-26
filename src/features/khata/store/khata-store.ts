@@ -16,7 +16,7 @@ import {
     type IParty,
     type NewParty,
     MAX_CARDS,
-} from "@/features/khata/expenseManagerTy";
+} from "@/features/khata/types";
 import { makeSlug } from "@/features/party/lib/party";
 import { newId } from "@/lib/id";
 import { toast } from "@/lib/toast";

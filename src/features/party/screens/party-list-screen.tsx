@@ -15,7 +15,7 @@ import {
     PARTY_TYPES,
     PARTY_TYPE_LABELS,
     type PartyType,
-} from "@/features/khata/expenseManagerTy";
+} from "@/features/khata/types";
 import { BalanceOverview } from "@/features/party/components/balance-overview";
 import { BulkPartySheet } from "@/features/party/components/bulk-party-sheet";
 import { type BalanceFilter, PartyFilterSheet, type SortBy } from "@/features/party/components/party-filter-sheet";
