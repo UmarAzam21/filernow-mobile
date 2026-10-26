@@ -30,7 +30,9 @@
           "image": "./assets/images/Glossy Multilingual Globe Emblem.png",
           "imageWidth": 76
         }
-      ]
+      ],
+      "expo-sharing",
+      "@react-native-community/datetimepicker"
     ],
     "experiments": {
       "typedRoutes": true,
