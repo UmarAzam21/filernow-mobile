@@ -1,5 +1,6 @@
 // nativeApp\src\components\header\app-header.tsx
 
+import { router } from "expo-router";
 import { Bell, Crown, LayoutGrid } from "lucide-react-native";
 import { useState } from "react";
 import { View } from "react-native";
@@ -8,7 +9,6 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { BusinessSwitcher } from "@/features/business/components/business-switcher";
 import { NotificationsSheet } from "@/features/notifications/components/notifications-sheet";
 import { useUnreadCount } from "@/features/notifications/store/notifications-store";
-import { QuickMenuSheet } from "@/features/quick-menu/components/quick-menu-sheet";
 import { colors } from "@/theme/tokens";
 
 import { HeaderIconButton } from "./header-icon-button";
@@ -17,14 +17,11 @@ type Props = {
     onPremiumPress?: () => void;
 };
 
-type Sheet = "notifications" | "apps" | null;
-
-/** Top bar shared by the tab screens: active business switcher, premium, notifications sheet, quick menu sheet. */
+/** Top bar shared by the tab screens: active business switcher, premium, notifications sheet, "More" page. */
 export function AppHeader({ onPremiumPress }: Props) {
     const insets = useSafeAreaInsets();
     const unread = useUnreadCount();
-    const [sheet, setSheet] = useState<Sheet>(null);
-    const closeSheet = () => setSheet(null);
+    const [notificationsOpen, setNotificationsOpen] = useState(false);
 
     return (
         <View className="border-b border-border-clr bg-page-bg" style={{ paddingTop: insets.top }}>
@@ -58,14 +55,13 @@ export function AppHeader({ onPremiumPress }: Props) {
                         filled
                         size={34}
                         badge={unread > 0}
-                        onPress={() => setSheet("notifications")}
+                        onPress={() => setNotificationsOpen(true)}
                     />
-                    <HeaderIconButton icon={LayoutGrid} label="Quick menu" filled size={34} onPress={() => setSheet("apps")} />
+                    <HeaderIconButton icon={LayoutGrid} label="More" filled size={34} onPress={() => router.push("/more")} />
                 </View>
             </View>
 
-            <NotificationsSheet visible={sheet === "notifications"} onClose={closeSheet} />
-            <QuickMenuSheet visible={sheet === "apps"} onClose={closeSheet} />
+            <NotificationsSheet visible={notificationsOpen} onClose={() => setNotificationsOpen(false)} />
         </View>
     );
 }
