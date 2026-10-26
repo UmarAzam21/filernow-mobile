@@ -1,6 +1,6 @@
 // nativeApp\src\features\khata\data\dummyExpenseEntries.ts
 
-import { IExpenseEntry, IParty } from "../expenseManagerTy";
+import { IExpenseEntry, IParty } from "../types";
 
 // Dummy seed data, gives a first-time user a fully populated dashboard to
 // explore before they add real entries. Fully deletable via existing CRUD

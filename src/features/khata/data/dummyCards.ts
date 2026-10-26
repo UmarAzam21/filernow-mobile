@@ -1,6 +1,6 @@
 // nativeApp\src\features\khata\data\dummyCards.ts
 
-import { ICard } from "../expenseManagerTy";
+import { ICard } from "../types";
 
 export const dummyCards: ICard[] = [
     { id: "card-1", label: "Meezan Bank", balance: 155950, last4: "1289", expiryMonth: 9, expiryYear: 2031, gradient: "primary" },

@@ -3,7 +3,7 @@
 import { SymbolView, type SymbolViewProps } from "expo-symbols";
 import { Pressable, Text, View } from "react-native";
 
-import { PARTY_TYPES, PARTY_TYPE_LABELS, type PartyType } from "@/features/khata/expenseManagerTy";
+import { PARTY_TYPES, PARTY_TYPE_LABELS, type PartyType } from "@/features/khata/types";
 import { cn } from "@/lib/cn";
 import { colors } from "@/theme/tokens";
 

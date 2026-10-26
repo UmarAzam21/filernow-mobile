@@ -1,6 +1,6 @@
 // nativeApp\src\features\khata\lib\cardDelta.ts
 
-import { IExpenseEntry } from "../expenseManagerTy";
+import { IExpenseEntry } from "../types";
 
 export function cardDelta(e: Pick<IExpenseEntry, "kind" | "amount">): number {
     if (e.kind === "income") return e.amount;

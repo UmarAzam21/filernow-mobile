@@ -1,6 +1,6 @@
 // nativeApp\src\features\khata\lib\trend.ts
 
-import { IExpenseEntry } from "../expenseManagerTy";
+import { IExpenseEntry } from "../types";
 import { debtSign } from "./debt";
 
 export function buildTrend(
