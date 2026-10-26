@@ -21,6 +21,9 @@ type BusinessState = {
     setActive: (id: string) => void;
     /** Adds the business and makes it the active one. Returns null when MAX_BUSINESSES is reached. */
     addBusiness: (b: NewBusiness) => IBusiness | null;
+    updateBusiness: (id: string, patch: Partial<NewBusiness>) => void;
+    /** Removes a business; the last remaining one can't be deleted (returns false). */
+    deleteBusiness: (id: string) => boolean;
 };
 
 type Persisted = Pick<BusinessState, "businesses" | "activeId">;
@@ -36,6 +39,15 @@ export const useBusinessStore = create<BusinessState>()(
                 const business: IBusiness = { ...b, id: newId(), createdAt: new Date().toISOString() };
                 set((s) => ({ businesses: [...s.businesses, business], activeId: business.id }));
                 return business;
+            },
+            updateBusiness: (id, patch) =>
+                set((s) => ({ businesses: s.businesses.map((b) => (b.id === id ? { ...b, ...patch } : b)) })),
+            deleteBusiness: (id) => {
+                const { businesses, activeId } = get();
+                if (businesses.length <= 1) return false;
+                const rest = businesses.filter((b) => b.id !== id);
+                set({ businesses: rest, activeId: activeId === id ? rest[0].id : activeId });
+                return true;
             },
         }),
         {
