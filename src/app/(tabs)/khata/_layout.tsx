@@ -1,10 +1,12 @@
 // nativeApp\src\app\(tabs)\khata\_layout.tsx
 
 import { Stack } from "expo-router";
+import { useTranslation } from "react-i18next";
 
 import { colors } from "@/theme/tokens";
 
 export default function KhataLayout() {
+    const { t } = useTranslation("khata");
     return (
         <Stack
             screenOptions={{
@@ -13,7 +15,7 @@ export default function KhataLayout() {
                 headerShadowVisible: false,
                 contentStyle: { backgroundColor: colors["page-bg"] },
             }}>
-            <Stack.Screen name="index" options={{ title: "Digital Khata" }} />
+            <Stack.Screen name="index" options={{ title: t("title") }} />
         </Stack>
     );
 }

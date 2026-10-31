@@ -19,6 +19,7 @@ import {
 } from "@/features/khata/types";
 import { makeSlug } from "@/features/party/lib/party";
 import { newId } from "@/lib/id";
+import i18n from "@/i18n";
 import { toast } from "@/lib/toast";
 
 type DataMode = "demo" | "blank";
@@ -54,6 +55,8 @@ type KhataState = {
 };
 
 const money = (n: number) => `PKR ${n.toLocaleString("en-PK")}`;
+// store messages follow the app language
+const t = i18n.getFixedT(null, "khata", "toast");
 
 // Select primitives or stable references only: useKhataStore((s) => s.parties).
 // Selectors that build new objects/arrays need useShallow, or React 19 will loop.
@@ -74,7 +77,11 @@ export const useKhataStore = create<KhataState>()(
                     const card = before.find((c) => c.id === id);
                     if (card) {
                         toast.success(
-                            `${card.label}: ${d > 0 ? "+" : "-"}${money(Math.abs(d))} (naya balance ${money(card.balance + d)})`,
+                            t("cardBalance", {
+                                card: card.label,
+                                change: `${d > 0 ? "+" : "-"}${money(Math.abs(d))}`,
+                                balance: money(card.balance + d),
+                            }),
                         );
                     }
                 });
@@ -89,12 +96,12 @@ export const useKhataStore = create<KhataState>()(
 
                 loadDemoData: () => {
                     set({ entries: dummyExpenseEntries, cards: dummyCards, parties: dummyParties, dataMode: "demo" });
-                    toast.success("Demo data load ho gaya");
+                    toast.success(t("demoLoaded"));
                 },
 
                 resetToBlank: () => {
                     set({ entries: [], cards: [], parties: [], dataMode: "blank" });
-                    toast.success("Khata saaf ho gaya. Naye sire se shuru karein");
+                    toast.success(t("cleared"));
                 },
 
                 addEntry: (entry) => {
@@ -102,7 +109,7 @@ export const useKhataStore = create<KhataState>()(
                     set((s) => ({
                         entries: [{ ...clean, id: newId(), createdAt: new Date().toISOString() }, ...s.entries],
                     }));
-                    toast.success(`${entry.subject} save ho gaya`);
+                    toast.success(t("saved", { name: entry.subject }));
                     if (clean.cardId) applyCardDeltas({ [clean.cardId]: cardDelta(clean) });
                 },
 
@@ -112,7 +119,7 @@ export const useKhataStore = create<KhataState>()(
 
                     const updated = { ...old, ...patch };
                     set((s) => ({ entries: s.entries.map((e) => (e.id === id ? updated : e)) }));
-                    toast.success(`${updated.subject} update ho gaya`);
+                    toast.success(t("updated", { name: updated.subject }));
 
                     // Debt card effects are ledger-style (never recomputed on edit).
                     if (updated.kind !== "debt") {
@@ -128,7 +135,7 @@ export const useKhataStore = create<KhataState>()(
                     if (!target) return;
 
                     set((s) => ({ entries: s.entries.filter((e) => e.id !== id) }));
-                    toast.success(`${target.subject} delete ho gaya`);
+                    toast.success(t("deleted", { name: target.subject }));
 
                     if (target.cardId && target.kind !== "debt") {
                         applyCardDeltas({ [target.cardId]: -cardDelta(target) });
@@ -138,7 +145,7 @@ export const useKhataStore = create<KhataState>()(
                 addParty: (p) => {
                     const party: IParty = { ...p, id: newId(), slug: makeSlug(p.name), createdAt: new Date().toISOString() };
                     set((s) => ({ parties: [party, ...s.parties] }));
-                    toast.success(`${party.name} add ho gaya`);
+                    toast.success(t("partyAdded", { name: party.name }));
                     return party;
                 },
 
@@ -146,7 +153,7 @@ export const useKhataStore = create<KhataState>()(
                     const now = new Date().toISOString();
                     const created: IParty[] = list.map((p) => ({ ...p, id: newId(), slug: makeSlug(p.name), createdAt: now }));
                     set((s) => ({ parties: [...created, ...s.parties] }));
-                    toast.success(`${created.length} parties add ho gayin`);
+                    toast.success(t("partiesAdded", { count: created.length }));
                     return created.length;
                 },
 
@@ -156,7 +163,7 @@ export const useKhataStore = create<KhataState>()(
                 deleteParty: (id, withEntries = false) => {
                     const linked = get().entries.filter((e) => e.partyId === id);
                     if (linked.length && !withEntries) {
-                        toast.error("Is party ki entries maujood hain, pehle woh delete karein");
+                        toast.error(t("partyHasEntries"));
                         return false;
                     }
                     if (linked.length) {
@@ -169,18 +176,20 @@ export const useKhataStore = create<KhataState>()(
                         set((s) => ({ entries: s.entries.filter((e) => e.partyId !== id) }));
                     }
                     set((s) => ({ parties: s.parties.filter((p) => p.id !== id) }));
-                    toast.success(linked.length ? `Party aur ${linked.length} entries delete ho gayin` : "Party delete ho gayi");
+                    toast.success(
+                        linked.length ? t("partyDeletedWithEntries", { count: linked.length }) : t("partyDeleted"),
+                    );
                     return true;
                 },
 
                 addCategory: (label, color, kind) => {
                     const clean = label.trim();
                     if (get().categories.some((c) => c.kind === kind && c.label.toLowerCase() === clean.toLowerCase())) {
-                        toast.error(`"${clean}" pehle se maujood hai`);
+                        toast.error(t("categoryExists", { name: clean }));
                         return;
                     }
                     set((s) => ({ categories: [...s.categories, { id: newId(), label: clean, color, kind }] }));
-                    toast.success(`${clean} category add ho gayi`);
+                    toast.success(t("categoryAdded", { name: clean }));
                 },
 
                 updateCategory: (id, patch) =>
@@ -192,33 +201,33 @@ export const useKhataStore = create<KhataState>()(
                     if (!target) return;
 
                     if (target.kind === "debt") {
-                        toast.error("Udhaar categories delete nahi ho sakti");
+                        toast.error(t("debtCategoryLocked"));
                         return;
                     }
                     const fallback = categories.find((c) => c.kind === target.kind && c.label === "Other" && c.id !== id);
                     if (!fallback) {
-                        toast.error(`"Other" category delete nahi ho sakti`);
+                        toast.error(t("otherCategoryLocked"));
                         return;
                     }
                     set((s) => ({
                         entries: s.entries.map((e) => (e.categoryId === id ? { ...e, categoryId: fallback.id } : e)),
                         categories: s.categories.filter((c) => c.id !== id),
                     }));
-                    toast.success(`${target.label} delete ho gayi (entries "Other" me chali gayin)`);
+                    toast.success(t("categoryDeleted", { name: target.label }));
                 },
 
                 addCard: (card) => {
                     if (get().cards.length >= MAX_CARDS) {
-                        toast.error(`Sirf ${MAX_CARDS} cards add ho sakte hain`);
+                        toast.error(t("maxCards", { count: MAX_CARDS }));
                         return;
                     }
                     set((s) => ({ cards: [...s.cards, { ...card, id: newId() }] }));
-                    toast.success(`${card.label} add ho gaya`);
+                    toast.success(t("cardAdded", { name: card.label }));
                 },
 
                 updateCard: (id, patch) => {
                     set((s) => ({ cards: s.cards.map((c) => (c.id === id ? { ...c, ...patch } : c)) }));
-                    toast.success("Card update ho gaya");
+                    toast.success(t("cardUpdated"));
                 },
 
                 deleteCard: (id) => {
@@ -227,7 +236,7 @@ export const useKhataStore = create<KhataState>()(
                         cards: s.cards.filter((c) => c.id !== id),
                         entries: s.entries.map((e) => (e.cardId === id ? { ...e, cardId: undefined } : e)),
                     }));
-                    if (target) toast.success(`${target.label} delete ho gaya`);
+                    if (target) toast.success(t("deleted", { name: target.label }));
                 },
 
                 adjustCardBalance: (id, delta) =>
@@ -239,11 +248,11 @@ export const useKhataStore = create<KhataState>()(
                     const to = cards.find((c) => c.id === toId);
 
                     if (!from || !to || fromId === toId || amount <= 0) {
-                        toast.error("Alag alag cards chunein");
+                        toast.error(t("differentCards"));
                         return;
                     }
                     if (from.balance < amount) {
-                        toast.error(`${from.label} me itna balance nahi hai`);
+                        toast.error(t("notEnoughBalance", { name: from.label }));
                         return;
                     }
                     set({
@@ -253,7 +262,7 @@ export const useKhataStore = create<KhataState>()(
                                     : c,
                         ),
                     });
-                    toast.success(`${money(amount)} ${from.label} se ${to.label} me transfer hue`);
+                    toast.success(t("transferred", { amount: money(amount), from: from.label, to: to.label }));
                 },
             };
         },
