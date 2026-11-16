@@ -2,7 +2,7 @@
   "screenTitle": "Apni <highlight>Zubaan</highlight> Chunein",
   "screenSubtitle": "Aap ise baad mein Settings se kabhi bhi badal sakte hain.",
   "sheetTitle": "Zubaan chunein",
-  "globeA11y": "Mukhtalif zubaanon wala globe",
+  "globeA11y": "English, Urdu aur Hindi zubaan ke cards",
   "backgroundA11y": "Welcome screen ka background",
   "restart": {
     "title": "Zubaan badalne ke liye restart karein?",
@@ -10,5 +10,19 @@
     "messageLtr": "{{language}} baayein se daayein parhi jati hai, is liye layout badalne ke liye app restart hogi. Aap ka data mehfooz rahega.",
     "confirm": "Restart karein"
   },
-  "changed": "Zubaan {{language}} mein badal di gayi"
+  "changed": "Zubaan {{language}} mein badal di gayi",
+  "hints": {
+    "en": "App ki default zubaan",
+    "ur": "Urdu rasm-ul-khat, daayein se baayein",
+    "ur-Latn": "English huroof mein Urdu"
+  },
+  "picker": {
+    "title": "Zubaan chunein",
+    "subtitle": "Neeche apni pasandeeda zubaan chunein. Is se hamein aap ki behtar khidmat karne mein madad milti hai.",
+    "selected": "Aap ka intikhab",
+    "all": "Tamam Zubaanein",
+    "search": "Talaash karein",
+    "empty": "Koi zubaan nahi mili",
+    "soon": "Jald aa rahi hai"
+  }
 }

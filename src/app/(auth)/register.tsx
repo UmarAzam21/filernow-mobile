@@ -6,8 +6,9 @@ import RegisterScreen from "@/features/auth/components/register-screen";
 export default function RegisterRoute() {
   return (
     <RegisterScreen
-      onContinue={(phone, exists) =>
-        router.push({ pathname: exists ? "/(auth)/login-pin" : "/(auth)/setup-pin", params: { phone } })
+      // check-phone decided: registered numbers log in, new numbers create a PIN (then register)
+      onContinue={(phone, next) =>
+        router.push({ pathname: next === "login" ? "/(auth)/login-pin" : "/(auth)/setup-pin", params: { phone } })
       }
     />
   );

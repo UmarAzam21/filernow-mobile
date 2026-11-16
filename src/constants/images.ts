@@ -3,6 +3,7 @@
 export const images = {
     welcomeBg: require("@/assets/images/welcome-bg.png"),
     languageGlobe: require("@/assets/images/language-globe.png"),
+    languageCards: require("@/assets/images/language-cards.png"),
     cardExpenseManager: require("@/assets/images/banners/card-expense-manager.png"),
     cardUnder18: require("@/assets/images/banners/card-under-18.png"),
     bannerExpenseManager: require("@/assets/images/banners/ExpenseManagementDashboard.png"),

@@ -18,8 +18,9 @@ const KIND: Record<EntryKind, { badge: string; text: string }> = {
 type Props = {
     entry: IExpenseEntry;
     categoryLabel: string;
-    onDelete: (entry: IExpenseEntry) => void;
-    /** Omit for entries that are edited elsewhere (udhaar entries are edited in the Party screen). */
+    /** Omit when the entry can't be deleted here (server entries: the API has no delete yet). */
+    onDelete?: (entry: IExpenseEntry) => void;
+    /** Omit for entries that are edited elsewhere (udhaar → Party screen) or can't be edited (server). */
     onEdit?: (entry: IExpenseEntry) => void;
 };
 
@@ -51,9 +52,11 @@ export function TransactionRow({ entry, categoryLabel, onDelete, onEdit }: Props
                     <SymbolView name={{ ios: "pencil", android: "edit", web: "edit" }} size={17} tintColor={colors["text-secondary"]} />
                 </Pressable>
             ) : null}
-            <Pressable accessibilityRole="button" accessibilityLabel="Delete entry" onPress={() => onDelete(entry)} hitSlop={10}>
-                <SymbolView name={{ ios: "trash", android: "delete", web: "delete" }} size={17} tintColor={colors["text-secondary-muted"]} />
-            </Pressable>
+            {onDelete ? (
+                <Pressable accessibilityRole="button" accessibilityLabel="Delete entry" onPress={() => onDelete(entry)} hitSlop={10}>
+                    <SymbolView name={{ ios: "trash", android: "delete", web: "delete" }} size={17} tintColor={colors["text-secondary-muted"]} />
+                </Pressable>
+            ) : null}
         </View>
     );
 }

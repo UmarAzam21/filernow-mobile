@@ -5,22 +5,35 @@ import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
 
 import {
+    BUSINESS_TYPE_KEYS,
+    CURRENCIES,
     DEFAULT_BUSINESS_ID,
+    type BusinessType,
+    type CurrencyCode,
     type IBusiness,
     LEGACY_DEMO_IDS,
     MAX_BUSINESSES,
     defaultBusinesses,
 } from "@/features/business/data/business-options";
-import { newId } from "@/lib/id";
 
 export type NewBusiness = Omit<IBusiness, "id" | "createdAt">;
+
+/** A business as the backend sends it (see auth-api ApiBusiness); kept structural to avoid a feature import cycle. */
+type ServerBusiness = { id: number; business_name: string; business_type: string; currency: string; created_at: string };
+
+const asType = (t: string): BusinessType => (BUSINESS_TYPE_KEYS as string[]).includes(t) ? (t as BusinessType) : "shop";
+const asCurrency = (c: string): CurrencyCode =>
+    CURRENCIES.some((x) => x.code === c.toUpperCase()) ? (c.toUpperCase() as CurrencyCode) : "PKR";
 
 type BusinessState = {
     businesses: IBusiness[];
     activeId: string;
-    setActive: (id: string) => void;
-    /** Adds the business and makes it the active one. Returns null when MAX_BUSINESSES is reached. */
-    addBusiness: (b: NewBusiness) => IBusiness | null;
+    /**
+     * Replaces the list with the server's (ids become the server ids as strings) and selects the
+     * server's active business. Theme colours are local-only, so they're kept per id.
+     */
+    syncFromServer: (list: ServerBusiness[], activeServerId: number | null) => void;
+    // Adding and switching go through the API (auth/lib/session) so the token follows the business.
     updateBusiness: (id: string, patch: Partial<NewBusiness>) => void;
     /** Removes a business; the last remaining one can't be deleted (returns false). */
     deleteBusiness: (id: string) => boolean;
@@ -33,12 +46,22 @@ export const useBusinessStore = create<BusinessState>()(
         (set, get) => ({
             businesses: defaultBusinesses,
             activeId: DEFAULT_BUSINESS_ID,
-            setActive: (activeId) => set({ activeId }),
-            addBusiness: (b) => {
-                if (get().businesses.length >= MAX_BUSINESSES) return null;
-                const business: IBusiness = { ...b, id: newId(), createdAt: new Date().toISOString() };
-                set((s) => ({ businesses: [...s.businesses, business], activeId: business.id }));
-                return business;
+            syncFromServer: (list, activeServerId) => {
+                if (list.length === 0) return;
+                const local = get().businesses;
+                const businesses: IBusiness[] = list.map((b) => {
+                    const id = String(b.id);
+                    return {
+                        id,
+                        name: b.business_name,
+                        type: asType(b.business_type),
+                        currency: asCurrency(b.currency),
+                        theme: local.find((l) => l.id === id)?.theme ?? "red",
+                        createdAt: b.created_at,
+                    };
+                });
+                const active = String(activeServerId ?? list[0].id);
+                set({ businesses, activeId: businesses.some((b) => b.id === active) ? active : businesses[0].id });
             },
             updateBusiness: (id, patch) =>
                 set((s) => ({ businesses: s.businesses.map((b) => (b.id === id ? { ...b, ...patch } : b)) })),

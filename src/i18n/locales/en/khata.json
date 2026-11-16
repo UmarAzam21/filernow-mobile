@@ -1,24 +1,24 @@
 {
   "title": "Digital Khata",
   "sections": {
-    "daily": { "title": "Daily Khata", "description": "Record your daily sales and spending." },
-    "business": { "title": "Business Khata", "description": "Track stock, bills and cash in one place." },
-    "udhaar": { "title": "Udhaar Khata", "description": "Manage credit given and payments due." },
-    "party": { "title": "Party", "description": "Customers and suppliers, with balances." }
-  },
-  "mode": {
-    "label": "Mode: {{mode}}",
-    "demo": "Demo",
-    "blank": "Blank",
-    "startFresh": "Start Fresh",
-    "loadDemo": "Load Demo Data",
-    "replaceTitle": "Your current data will be replaced",
-    "replaceMessage": "Are you sure?"
+    "daily": {
+      "title": "Daily Khata",
+      "description": "Record your daily sales and spending."
+    },
+    "business": {
+      "title": "Business Khata",
+      "description": "Track stock, bills and cash in one place."
+    },
+    "udhaar": {
+      "title": "Udhaar Khata",
+      "description": "Manage credit given and payments due."
+    },
+    "party": {
+      "title": "Party",
+      "description": "Customers and suppliers, with balances."
+    }
   },
   "toast": {
-    "cardBalance": "{{card}}: {{change}} (new balance {{balance}})",
-    "demoLoaded": "Demo data loaded",
-    "cleared": "Khata cleared. Start fresh.",
     "saved": "{{name}} saved",
     "updated": "{{name}} updated",
     "deleted": "{{name}} deleted",
@@ -33,12 +33,22 @@
     "categoryAdded": "{{name}} category added",
     "debtCategoryLocked": "Udhaar categories can't be deleted",
     "otherCategoryLocked": "The \"Other\" category can't be deleted",
-    "categoryDeleted": "{{name}} deleted (its entries moved to \"Other\")",
     "maxCards": "You can add up to {{count}} cards",
     "cardAdded": "{{name}} added",
     "cardUpdated": "Card updated",
     "differentCards": "Choose two different cards",
     "notEnoughBalance": "{{name}} doesn't have enough balance",
-    "transferred": "{{amount}} moved from {{from}} to {{to}}"
+    "transferred": "{{amount}} moved from {{from}} to {{to}}",
+    "cardRequired": "Choose a card: every expense needs one",
+    "notEditable": "Saved entries can’t be edited yet",
+    "notDeletable": "Saved entries can’t be deleted yet",
+    "categoryRemoved": "{{name}} deleted",
+    "cardRenameUnsupported": "A card’s name and number can’t be changed yet",
+    "balanceTooLow": "Balance must be more than {{amount}} (the total of this card’s entries)"
+  },
+  "sync": {
+    "loading": "Loading your khata…",
+    "offline": "Couldn’t refresh. Showing your last saved data.",
+    "retry": "Retry"
   }
 }

@@ -6,6 +6,7 @@ import { useTranslation } from "react-i18next";
 import { Pressable, Text, View } from "react-native";
 
 import { type EmIconName, emIcons } from "@/constants/expense-manager-icons";
+import { useAssistantStore } from "@/features/assistant/store/assistant-store";
 import type { Resources } from "@/i18n/resources";
 
 type TabLabelKey = keyof Resources["common"]["tabs"];
@@ -40,6 +41,7 @@ const CENTER_RING = 3;
 /** Bottom navigation: flat white bar, 3D icons (grey when inactive), slightly raised "Ask AI" orb in the middle. */
 export function AppTabBar({ state, descriptors, navigation, insets }: BottomTabBarProps) {
     const { t } = useTranslation();
+    const showAssistant = useAssistantStore((s) => s.show);
     const tabs = TAB_DEFS.map((def) => ({ def, route: state.routes.find((r) => r.name === def.name) })).filter(
         (t): t is { def: TabDef; route: (typeof state.routes)[number] } => t.route !== undefined,
     );
@@ -59,6 +61,11 @@ export function AppTabBar({ state, descriptors, navigation, insets }: BottomTabB
                 const { options } = descriptors[route.key];
 
                 const onPress = () => {
+                    // The AI orb opens the Siri-style assistant over the current screen instead of switching tabs.
+                    if (def.center) {
+                        showAssistant();
+                        return;
+                    }
                     const event = navigation.emit({ type: "tabPress", target: route.key, canPreventDefault: true });
                     if (!focused && !event.defaultPrevented) navigation.navigate(route.name, route.params);
                 };

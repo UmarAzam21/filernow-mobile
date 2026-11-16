@@ -1,74 +1,93 @@
 // nativeApp\src\features\notifications\data\notifications.ts
 
-import type { ServiceIconName } from "@/constants/service-icons";
+import type { ApiNotification, ApiNotificationCategory } from "../api/notifications-api";
 
 export type NotificationKind = "alert" | "info";
+
+/** Which icon + colours a notification gets (see `notification-look.ts`). */
+export type NotificationLook =
+    | "expense"
+    | "income"
+    | "card"
+    | "transfer"
+    | "balance"
+    | "category"
+    | "deleted"
+    | "updated"
+    | "budget"
+    | "reminder"
+    | "debt"
+    | "business"
+    | "email"
+    | "security"
+    | "alert"
+    | "system";
 
 export type INotification = {
     id: string;
     kind: NotificationKind;
-    /** Illustrated icon, or an emoji when there is no illustration for it. */
-    icon: { image: ServiceIconName } | { emoji: string };
-    /** Background of the rounded icon tile. */
-    tint: string;
+    look: NotificationLook;
     title: string;
     body: string;
     createdAt: string;
     read: boolean;
 };
 
-const ago = (minutes: number) => new Date(Date.now() - minutes * 60_000).toISOString();
+const CATEGORY_KIND: Record<ApiNotificationCategory, NotificationKind> = {
+    transactions: "info",
+    alerts: "alert",
+    reminders: "alert",
+    security: "alert",
+    system: "info",
+};
 
-// Demo feed until the backend sends real notifications.
-export const demoNotifications = (): INotification[] => [
-    {
-        id: "budget-90",
-        kind: "alert",
-        icon: { emoji: "⚠️" },
-        tint: "#FFF1DC",
-        title: "Budget almost reached",
-        body: "Food & Dining is at 90% of this month's budget.",
-        createdAt: ago(10),
-        read: false,
-    },
-    {
-        id: "expense-added",
-        kind: "info",
-        icon: { image: "expenses" },
-        tint: "#E3F6EE",
-        title: "Expense added",
-        body: "Rs 2,450 spent at Imtiaz Super Market.",
-        createdAt: ago(120),
-        read: false,
-    },
-    {
-        id: "bill-due",
-        kind: "alert",
-        icon: { image: "recurring" },
-        tint: "#EEE9FF",
-        title: "Recurring bill due tomorrow",
-        body: "Electricity bill · Rs 8,200 is due on 24 Oct.",
-        createdAt: ago(300),
-        read: false,
-    },
-    {
-        id: "weekly-report",
-        kind: "info",
-        icon: { image: "reports" },
-        tint: "#E4EFFF",
-        title: "Weekly report is ready",
-        body: "You saved 12% more than last week. Nice work!",
-        createdAt: ago(60 * 26),
-        read: true,
-    },
-    {
-        id: "savings-goal",
-        kind: "info",
-        icon: { image: "savings" },
-        tint: "#FFF4D6",
-        title: "Savings goal reached",
-        body: "You hit your “New Phone” goal of Rs 60,000.",
-        createdAt: ago(60 * 50),
-        read: true,
-    },
+const CATEGORY_LOOK: Record<ApiNotificationCategory, NotificationLook> = {
+    transactions: "expense",
+    alerts: "alert",
+    reminders: "reminder",
+    security: "security",
+    system: "system",
+};
+
+/**
+ * Picks the look from the notification's `type` (e.g. "card_added", "expense.created") and,
+ * when the type is generic, its title. First match wins, so the specific words come first.
+ */
+const RULES: [RegExp, NotificationLook][] = [
+    [/delet|remov/, "deleted"],
+    [/transfer/, "transfer"],
+    [/balance/, "balance"],
+    [/card/, "card"],
+    [/income|received|salary/, "income"],
+    [/expense|spent|payment|paid/, "expense"],
+    [/categor/, "category"],
+    [/budget|limit|overspen/, "budget"],
+    [/udhaar|debt|party|loan|owe/, "debt"],
+    [/remind|due|recurring/, "reminder"],
+    [/business/, "business"],
+    [/email/, "email"],
+    [/pin|login|sign.?in|password|device|security|biometric|fingerprint/, "security"],
+    [/updat|edit|chang/, "updated"],
 ];
+
+function lookFor(n: ApiNotification): NotificationLook {
+    for (const source of [n.type, n.title]) {
+        const text = (source ?? "").toLowerCase();
+        const hit = RULES.find(([re]) => re.test(text));
+        if (hit) return hit[1];
+    }
+    return CATEGORY_LOOK[n.category] ?? "system";
+}
+
+export function fromApiNotification(n: ApiNotification): INotification {
+    return {
+        id: n.id,
+        // a high-priority message is an alert whatever its category
+        kind: n.priority === "high" ? "alert" : (CATEGORY_KIND[n.category] ?? "info"),
+        look: lookFor(n),
+        title: n.title,
+        body: n.body,
+        createdAt: n.created_at,
+        read: n.is_read,
+    };
+}

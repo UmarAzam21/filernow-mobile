@@ -14,7 +14,7 @@ import { ToggleSwitch } from "@/components/ui/toggle-switch";
 import { emIcons } from "@/constants/expense-manager-icons";
 import { images } from "@/constants/images";
 import { useLogout } from "@/features/auth/hooks/use-logout";
-import { useAuthStore } from "@/features/auth/store/auth-store";
+import { useIsSignedIn } from "@/features/auth/store/auth-store";
 import { currencyOf } from "@/features/business/data/business-options";
 import { businessName } from "@/features/business/lib/business-name";
 import { useActiveBusiness, useBusinessStore } from "@/features/business/store/business-store";
@@ -41,7 +41,7 @@ export default function MoreScreen() {
     const insets = useSafeAreaInsets();
     const { t } = useTranslation(["more", "common", "auth"]);
     const openService = useOpenService();
-    const isSignedIn = useAuthStore((s) => s.phone !== null);
+    const isSignedIn = useIsSignedIn();
     const logout = useLogout();
     const quickNotification = useAppStore((s) => s.quickNotification);
     const setQuickNotification = useAppStore((s) => s.setQuickNotification);

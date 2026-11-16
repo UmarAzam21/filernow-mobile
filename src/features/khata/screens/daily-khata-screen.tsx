@@ -4,7 +4,7 @@ import { Stack, useRouter } from "expo-router";
 import { SymbolView } from "expo-symbols";
 import { useTranslation } from "react-i18next";
 import { useMemo, useState } from "react";
-import { Alert, FlatList, Pressable, ScrollView, Text, View } from "react-native";
+import { Alert, FlatList, Pressable, RefreshControl, ScrollView, Text, View } from "react-native";
 
 import { Input } from "@/components/ui/form";
 import { OptionSheet } from "@/components/ui/option-sheet";
@@ -12,7 +12,7 @@ import { useActiveBusiness } from "@/features/business/store/business-store";
 import { CardsManager } from "@/features/khata/components/cards-manager";
 import { CategoryManagerSheet } from "@/features/khata/components/category-manager-sheet";
 import { DailyCharts } from "@/features/khata/components/daily-charts";
-import { DataModeBar } from "@/features/khata/components/data-mode-bar";
+import { KhataSyncBar } from "@/features/khata/components/khata-sync-bar";
 import { DetailedEntrySheet } from "@/features/khata/components/detailed-entry-sheet";
 import { StatCard } from "@/features/khata/components/stat-card";
 import { TransactionRow } from "@/features/khata/components/transaction-row";
@@ -71,6 +71,8 @@ export default function DailyKhataScreen() {
     const { entries, parties, cards } = useBusinessData();
     const categories = useKhataStore((s) => s.categories);
     const deleteEntry = useKhataStore((s) => s.deleteEntry);
+    const sync = useKhataStore((s) => s.sync);
+    const syncing = useKhataStore((s) => s.syncing);
     const stats = useDailyStats();
 
     const [filter, setFilter] = useState<FilterTab>("all");
@@ -170,9 +172,11 @@ export default function DailyKhataScreen() {
                 keyExtractor={(e) => e.id}
                 keyboardShouldPersistTaps="handled"
                 contentContainerStyle={{ paddingBottom: 32 }}
+                // pull down to reload from the server
+                refreshControl={<RefreshControl refreshing={syncing} onRefresh={sync} tintColor={colors.primary} colors={[colors.primary]} />}
                 ListHeaderComponent={
                     <View>
-                        <DataModeBar />
+                        <KhataSyncBar />
 
                         <View className="flex-row flex-wrap gap-3 px-4 pt-4">
                             {stats.map((item) => (
@@ -251,8 +255,9 @@ export default function DailyKhataScreen() {
                     <TransactionRow
                         entry={item}
                         categoryLabel={labelOf(item.categoryId)}
-                        onDelete={confirmDelete}
-                        onEdit={item.kind === "debt" ? undefined : setEditing}
+                        // server entries can't be edited/deleted through the API yet
+                        onDelete={item.remote ? undefined : confirmDelete}
+                        onEdit={item.remote || item.kind === "debt" ? undefined : setEditing}
                     />
                 )}
             />

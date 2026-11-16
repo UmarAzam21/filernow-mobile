@@ -2,7 +2,7 @@
 
 import { SymbolView, type SymbolViewProps } from "expo-symbols";
 import { useState } from "react";
-import { Alert, Pressable, Text, View } from "react-native";
+import { Pressable, Text, View } from "react-native";
 
 import { AtmCard } from "@/features/khata/components/atm-card";
 import { CardFormSheet } from "@/features/khata/components/card-form-sheet";
@@ -32,7 +32,6 @@ export function CardsManager() {
     const { cards } = useBusinessData();
     const addCard = useKhataStore((s) => s.addCard);
     const updateCard = useKhataStore((s) => s.updateCard);
-    const deleteCard = useKhataStore((s) => s.deleteCard);
 
     const [selectedId, setSelectedId] = useState("");
     const [formOpen, setFormOpen] = useState(false);
@@ -47,11 +46,7 @@ export function CardsManager() {
         setFormOpen(true);
     };
 
-    const confirmDelete = (card: ICard) =>
-        Alert.alert("Card delete karein?", `${card.label}: is se judi entries "Cash" ho jayengi.`, [
-            { text: "Nahi", style: "cancel" },
-            { text: "Haan, delete", style: "destructive", onPress: () => deleteCard(card.id) },
-        ]);
+    // No delete: the API can't remove cards yet.
 
     return (
         <View className="mx-4 mt-4 rounded-brand-12 border border-border-clr bg-white p-3">
@@ -90,7 +85,6 @@ export function CardsManager() {
                     ) : null}
                     <View className="mt-3 flex-row gap-2">
                         <ActionButton icon={{ ios: "pencil", android: "edit", web: "edit" }} label="Edit" onPress={() => openForm(active)} />
-                        <ActionButton icon={{ ios: "trash", android: "delete", web: "delete" }} label="Delete" onPress={() => confirmDelete(active)} />
                         <ActionButton
                             icon={{ ios: "arrow.left.arrow.right", android: "swap_horiz", web: "swap_horiz" }}
                             label="Transfer"
@@ -113,6 +107,7 @@ export function CardsManager() {
                     setFormOpen(false);
                     setEditing(null);
                 }}
+                // resolves true once the server saved it; the sheet stays open on failure
                 onSubmit={(data) => (editing ? updateCard(editing.id, data) : addCard(data))}
             />
             <TransferSheet visible={transferOpen} onClose={() => setTransferOpen(false)} />

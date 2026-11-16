@@ -20,8 +20,10 @@ import {
 } from "react-native";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { checkPhone } from "../lib/mock-auth";
+import { apiErrorMessage } from "@/lib/api/errors";
+
 import { formatPhone, isValidPhone } from "../lib/phone";
+import { nextStepFor } from "../lib/session";
 
 // texts live in auth:register.chips / rotatingWords; every language has 3 rotating words
 const WORD_COUNT = 3;
@@ -64,7 +66,7 @@ function Reveal({
 export default function RegisterScreen({
   onContinue,
 }: {
-  onContinue: (phone: string, exists: boolean) => void;
+  onContinue: (phone: string, next: "login" | "set_pin") => void;
 }) {
   const insets = useSafeAreaInsets();
   const { t } = useTranslation(["auth", "common"]);
@@ -126,11 +128,11 @@ export default function RegisterScreen({
     if (!valid || loading) return;
     setLoading(true);
     try {
-      // existing number -> login with PIN, new number -> create a PIN
-      const { exists } = await checkPhone(phone);
-      onContinue(phone, exists);
-    } catch {
-      setRequestError(t("register.networkError"));
+      // the server says whether the number is registered: login, or create a PIN
+      onContinue(phone, await nextStepFor(phone));
+    } catch (e) {
+      // e.g. offline, too many checks (429), or a number owned by another kind of account (409)
+      setRequestError(apiErrorMessage(e));
     } finally {
       setLoading(false);
     }
@@ -262,6 +264,7 @@ export default function RegisterScreen({
                 onPress={handleContinue}
                 disabled={!valid || loading}
                 accessibilityRole="button"
+                accessibilityState={{ busy: loading, disabled: !valid || loading }}
                 style={({ pressed }) => ({ opacity: pressed ? 0.9 : 1 })}
                 // shadow-* sets CSS variables: keep it on both states so NativeWind doesn't
                 // "upgrade" (remount) the Pressable after the first render, which crashes on native

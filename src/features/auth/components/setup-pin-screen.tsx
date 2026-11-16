@@ -5,8 +5,10 @@ import { useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { View } from "react-native";
 
+import { apiErrorMessage } from "@/lib/api/errors";
+
 import { PIN_LENGTH, usePinEntry } from "../hooks/use-pin-entry";
-import { createAccount } from "../lib/mock-auth";
+import { registerAccount } from "../lib/session";
 import { PinDots } from "./pin-dots";
 import { PinKeypad } from "./pin-keypad";
 import { PinScreenLayout } from "./pin-screen-layout";
@@ -48,11 +50,12 @@ export default function SetupPinScreen({ phone, onBack, onComplete }: Props) {
 
       setLoading(true);
       try {
-        await createAccount(phone, pin);
+        await registerAccount(phone, pin);
         setDone(true);
         onComplete();
-      } catch {
-        fail(t("pin.createFailed"));
+      } catch (e) {
+        // e.g. "already registered" comes back as a readable detail from the API
+        fail(apiErrorMessage(e));
       } finally {
         setLoading(false);
       }

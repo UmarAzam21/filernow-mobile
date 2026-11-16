@@ -2,7 +2,8 @@
 
 import { create } from "zustand";
 
-import { clearBiometricPhone, getBiometricPhone, setBiometricPhone } from "@/storage/secure-session";
+import { useAuthStore } from "@/features/auth/store/auth-store";
+import { clearBiometricPhone, getBiometricPhone, setBiometricPhone, setBiometricToken } from "@/storage/secure-session";
 
 import i18n from "@/i18n";
 
@@ -60,6 +61,9 @@ export const useBiometricStore = create<BiometricState>()((set, get) => ({
 
         try {
             await setBiometricPhone(phone);
+            // the token a later biometric login resumes with (see auth/lib/session)
+            const token = useAuthStore.getState().token;
+            if (token) await setBiometricToken(token);
         } catch {
             return { success: false, cancelled: false, message: i18n.t("auth:biometric.error.saveFailed") };
         }

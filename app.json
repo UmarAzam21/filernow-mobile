@@ -40,7 +40,13 @@
           "faceIDPermission": "Allow $(PRODUCT_NAME) to use Face ID to log you in."
         }
       ],
-      "expo-localization"
+      "expo-localization",
+      [
+        "expo-audio",
+        {
+          "microphonePermission": "Allow $(PRODUCT_NAME) to use the microphone so you can add entries by voice."
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true,

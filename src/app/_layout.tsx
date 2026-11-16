@@ -11,6 +11,7 @@ import { useEffect } from "react";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 
 import { AppLockGate } from "@/features/app-lock/components/app-lock-gate";
+import { MoneyCelebration } from "@/features/celebration/components/money-celebration";
 import { Toaster } from "@/lib/toast";
 import { useStoresHydrated } from "@/stores/use-stores-hydrated";
 import { fontAssets } from "@/theme/fonts";
@@ -31,6 +32,7 @@ export default function RootLayout() {
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <Stack screenOptions={{ headerShown: false }} />
+      <MoneyCelebration />
       <AppLockGate />
       <Toaster />
     </GestureHandlerRootView>

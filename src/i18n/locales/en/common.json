@@ -28,7 +28,20 @@
   },
   "date": {
     "days": ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"],
-    "months": ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],
+    "months": [
+      "Jan",
+      "Feb",
+      "Mar",
+      "Apr",
+      "May",
+      "Jun",
+      "Jul",
+      "Aug",
+      "Sep",
+      "Oct",
+      "Nov",
+      "Dec"
+    ],
     "am": "AM",
     "pm": "PM"
   },
@@ -41,5 +54,74 @@
     "yesterday": "Yesterday",
     "days_one": "{{count}} day ago",
     "days_other": "{{count}} days ago"
+  },
+  "assistant": {
+    "greeting": "Hi! How can I help?",
+    "subtitle": "Just talk to me. Add several entries at once, ask about your spending, or change something. I’ll check with you before saving.",
+    "listening": "Listening…",
+    "tapToSend": "Tap the orb when you’re done",
+    "thinking": "Thinking…",
+    "placeholder": "Or type it here…",
+    "send": "Send",
+    "startListening": "Talk to AI",
+    "stopListening": "Stop and send",
+    "examples": [
+      "Today 500 on petrol and 300 on tea",
+      "Aaj ka kharcha bata do",
+      "How much is on my HBL card?"
+    ],
+    "micDenied": "Microphone access is off. Turn it on in your phone settings to talk to the AI.",
+    "recordFailed": "Couldn’t record. Please try again.",
+    "tooShort": "I didn’t catch that. Tap the orb and speak a little longer.",
+    "pending": {
+      "title_one": "I’ll do this:",
+      "title_other": "I’ll do these {{count}} things:",
+      "hint": "Tap Confirm, or just say “yes”. You can also say a correction, like “make it 1500”.",
+      "confirm": "Confirm",
+      "cancel": "Cancel"
+    },
+    "data": {
+      "currency": "Rs",
+      "more_one": "and {{count}} more",
+      "more_other": "and {{count}} more",
+      "kinds": {
+        "summary": "Summary",
+        "balance": "Card balances",
+        "entries": "Entries",
+        "transactions": "Transactions",
+        "details": "Details"
+      },
+      "fields": {
+        "amount": "Amount",
+        "balance": "Balance",
+        "by_card": "By card",
+        "by_category": "By category",
+        "card": "Card",
+        "cards": "Cards",
+        "category": "Category",
+        "count": "Entries",
+        "date": "Date",
+        "description": "Note",
+        "entries": "Entries",
+        "expense": "Expenses",
+        "income": "Income",
+        "items": "Items",
+        "name": "Name",
+        "net": "Net",
+        "party": "Party",
+        "subject": "Item",
+        "title": "Item",
+        "total": "Total",
+        "type": "Type"
+      }
+    }
+  },
+  "errors": {
+    "generic": "Something went wrong. Please try again.",
+    "network": "Can’t reach the server. Check your internet connection.",
+    "sessionExpired": "Your session has expired. Please log in again.",
+    "tooManyRequests": "Too many requests. Please wait a moment and try again.",
+    "maintenance": "We’re doing some maintenance. Please try again later.",
+    "retry": "Try again"
   }
 }
