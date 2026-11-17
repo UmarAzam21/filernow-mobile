@@ -4,7 +4,7 @@
     "slug": "KhataPilot",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/images/khataPilotUp.png",
+    "icon": "./assets/images/khataPilotWhite.png",
     "scheme": "filernowmobile",
     "userInterfaceStyle": "automatic",
     "ios": {
@@ -13,7 +13,7 @@
     "android": {
       "adaptiveIcon": {
         "backgroundColor": "#FFFFFF",
-        "foregroundImage": "./assets/images/khataPilotUp.png"
+        "foregroundImage": "./assets/images/khataPilot.png"
       },
       "predictiveBackGestureEnabled": false,
       "permissions": [
@@ -24,7 +24,7 @@
     },
     "web": {
       "output": "static",
-      "favicon": "./assets/images/khataPilotUp.png"
+      "favicon": "./assets/images/khataPilot.png"
     },
     "plugins": [
       "expo-router",
@@ -32,7 +32,7 @@
         "expo-splash-screen",
         {
           "backgroundColor": "#208AEF",
-          "image": "./assets/images/khataPilotUp.png",
+          "image": "./assets/images/khataPilot.png",
           "imageWidth": 76
         }
       ],

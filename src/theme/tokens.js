@@ -6,6 +6,7 @@ const colors = {
     // primary: "#D3222C", // dashboard primary is #C8102E!
     // "primary-light": "#E8A5A9",
     primary: "#C8102E", // same as dashboard --brand-primary
+    "primary-dark": "#9E0B24", // 3D bottom edge of the primary button
     "primary-light": "#FFB4C0", // dashboard --brand-primary-light
     "primary-tint": "#FFF6F6",
     "primary-lighter": "#C8102E1A", // dashboard --brand-primary-lighter (10% alpha)
@@ -23,6 +24,7 @@ const colors = {
     "text-link": "#0059D9",
     "page-bg": "#FBFCF9",
     "card-bg-clr": "#F8F9FA",
+    surface: "#FFFFFF",
     "surface-muted": "#F6F1F2",
     "border-clr": "#ECE5E7",
     "border-strong": "#DED2D6",
@@ -44,6 +46,9 @@ const colors = {
     "chip-purple": "#7C3AED",
     "chip-red-bg": "#FEE2E2",
     "chip-red": "#DC2626",
+
+    "shadow-soft": "rgba(100, 22, 60, 0.22)", // soft plum drop shadow for 3D text (needs a raw value: RN textShadow can't use classes)
+    "primary-glow": "#F2384F", // top highlight of the metallic red text
 };
 
 const fontFamily = {
@@ -59,11 +64,13 @@ const fontFamily = {
 // weight comes from the font-jakarta-* family classes).
 const fontSize = {
     "heading-h1": ["40px", { lineHeight: "48px" }],
+    display: ["36px", { lineHeight: "44px" }], // hero headline (between h1 40 and h2 28)
     "heading-h2": ["28px", { lineHeight: "34px" }],
     "heading-h3": ["20px", { lineHeight: "28px" }],
     "heading-h4": ["18px", { lineHeight: "26px" }],
     "heading-h5": ["16px", { lineHeight: "22px" }],
     "heading-h6": ["14px", { lineHeight: "20px" }],
+    "para-micro": ["10px", { lineHeight: "14px" }], // terms footer
     "para-tiny": ["12px", { lineHeight: "16px" }],
     "para-small": ["13px", { lineHeight: "18px" }],
     "para-base": ["15px", { lineHeight: "22px" }],
