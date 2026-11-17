@@ -1,14 +1,17 @@
 // nativeApp\src\features\business\components\business-switcher-sheet.tsx
 
 import { Plus } from "lucide-react-native";
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Pressable, Text, View } from "react-native";
 
 import { BottomSheet } from "@/components/ui/bottom-sheet";
 import { GradientButton } from "@/components/ui/gradient-button";
 import { GradientFill, PRIMARY_GRADIENT } from "@/components/ui/gradient-fill";
+import { addBusiness, switchBusiness } from "@/features/auth/lib/session";
 import { MAX_BUSINESSES } from "@/features/business/data/business-options";
 import { useBusinessStore } from "@/features/business/store/business-store";
+import { apiErrorMessage } from "@/lib/api/errors";
 import { toast } from "@/lib/toast";
 import { colors } from "@/theme/tokens";
 
@@ -29,9 +32,8 @@ export function BusinessSwitcherSheet({ visible, mode, onModeChange, onClose }: 
     const { t } = useTranslation("business");
     const businesses = useBusinessStore((s) => s.businesses);
     const activeId = useBusinessStore((s) => s.activeId);
-    const setActive = useBusinessStore((s) => s.setActive);
-    const addBusiness = useBusinessStore((s) => s.addBusiness);
     const form = useAddBusinessForm();
+    const [busy, setBusy] = useState(false);
     const atLimit = businesses.length >= MAX_BUSINESSES;
 
     const close = () => {
@@ -39,24 +41,42 @@ export function BusinessSwitcherSheet({ visible, mode, onModeChange, onClose }: 
         onClose();
     };
 
-    const select = (id: string) => {
-        setActive(id);
-        close();
+    // The server's active business scopes the token, so switching/adding go through the API.
+    const select = async (id: string) => {
+        if (busy) return;
+        if (id === activeId) return close();
+        setBusy(true);
+        try {
+            await switchBusiness(id);
+            close();
+        } catch (e) {
+            toast.error(apiErrorMessage(e));
+        } finally {
+            setBusy(false);
+        }
     };
 
-    const create = () => {
+    const create = async () => {
         const name = form.values.name.trim().replace(/\s+/g, " ");
-        if (!name) return;
+        if (!name || busy) return;
         if (businesses.some((b) => b.name.toLowerCase() === name.toLowerCase())) {
             toast.error(t("exists", { name }));
             return;
         }
-        if (!addBusiness({ ...form.values, name })) {
+        if (atLimit) {
             toast.error(t("maxBusinesses", { count: MAX_BUSINESSES }));
             return;
         }
-        toast.success(t("created", { name }));
-        close();
+        setBusy(true);
+        try {
+            await addBusiness({ ...form.values, name });
+            toast.success(t("created", { name }));
+            close();
+        } catch (e) {
+            toast.error(apiErrorMessage(e));
+        } finally {
+            setBusy(false);
+        }
     };
 
     if (mode === "add") {
@@ -66,7 +86,9 @@ export function BusinessSwitcherSheet({ visible, mode, onModeChange, onClose }: 
                 onClose={close}
                 title={t("addTitle")}
                 subtitle={t("addSubtitle")}
-                footer={<GradientButton label={t("create")} icon={Plus} onPress={create} disabled={!form.canSubmit} />}>
+                footer={
+                    <GradientButton label={t("create")} icon={Plus} onPress={create} disabled={!form.canSubmit || busy} />
+                }>
                 <AddBusinessFields form={form} onSubmitEditing={create} />
             </BottomSheet>
         );

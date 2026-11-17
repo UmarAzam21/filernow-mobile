@@ -2,7 +2,7 @@
   "screenTitle": "Choose Your <highlight>Language</highlight>",
   "screenSubtitle": "You can change this anytime in More → Settings.",
   "sheetTitle": "Select language",
-  "globeA11y": "Multilingual globe illustration",
+  "globeA11y": "English, Urdu and Hindi language cards",
   "backgroundA11y": "Welcome background",
   "restart": {
     "title": "Restart to switch language?",
@@ -10,5 +10,19 @@
     "messageLtr": "{{language}} reads left to right, so the app will restart to flip the layout. Your data stays safe.",
     "confirm": "Restart"
   },
-  "changed": "Language changed to {{language}}"
+  "changed": "Language changed to {{language}}",
+  "hints": {
+    "en": "Default app language",
+    "ur": "Urdu script, right to left",
+    "ur-Latn": "Urdu written in English letters"
+  },
+  "picker": {
+    "title": "Choose the language",
+    "subtitle": "Select your preferred language below. This helps us serve you better.",
+    "selected": "You Selected",
+    "all": "All Languages",
+    "search": "Search",
+    "empty": "No language found",
+    "soon": "Coming soon"
+  }
 }

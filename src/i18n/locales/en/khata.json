@@ -1,10 +1,111 @@
 {
   "title": "Digital Khata",
   "sections": {
-    "daily": { "title": "Daily Khata", "description": "Record your daily sales and spending." },
-    "business": { "title": "Business Khata", "description": "Track stock, bills and cash in one place." },
-    "udhaar": { "title": "Udhaar Khata", "description": "Manage credit given and payments due." },
-    "party": { "title": "Party", "description": "Customers and suppliers, with balances." }
+    "daily": {
+      "title": "Daily Khata",
+      "description": "Record your daily sales and spending."
+    },
+    "business": {
+      "title": "Business Khata",
+      "description": "Track stock, bills and cash in one place."
+    },
+    "udhaar": {
+      "title": "Udhaar Khata",
+      "description": "Manage credit given and payments due."
+    },
+    "party": {
+      "title": "Party",
+      "description": "Customers and suppliers, with balances."
+    }
+  },
+  "udhaar": {
+    "stats": {
+      "net": "Net Udhaar",
+      "get": "You will get",
+      "give": "You will give",
+      "settled": "Settled parties",
+      "netGet": "owed to you",
+      "netGive": "you owe",
+      "netZero": "all settled",
+      "getHint": "to receive",
+      "giveHint": "to pay",
+      "settledHint": "cleared"
+    },
+    "actions": {
+      "gave": "You Gave",
+      "got": "You Got"
+    },
+    "filter": {
+      "all": "All",
+      "gave": "You Gave",
+      "got": "You Got"
+    },
+    "balances": {
+      "title": "Udhaar Balances",
+      "empty": "All accounts are settled",
+      "viewAll": "View all parties",
+      "get": "You will get",
+      "give": "You will give"
+    },
+    "activity": {
+      "title": "Udhaar Activity",
+      "subtitle": "Gave vs Got",
+      "empty": "No udhaar activity yet",
+      "gave": "Gave",
+      "got": "Got",
+      "grain": {
+        "day": "Daily",
+        "week": "Weekly",
+        "month": "Monthly"
+      }
+    },
+    "list": {
+      "title": "Transactions ({{total}})",
+      "search": "Search party, type or note",
+      "empty": "No udhaar yet. Tap \"You Gave\" or \"You Got\" above, or load demo data.",
+      "noMatch": "No entries match this filter."
+    },
+    "picker": {
+      "title": "Choose a party",
+      "new": "+ New party"
+    },
+    "delete": {
+      "title": "Delete this entry?",
+      "confirm": "Yes, delete"
+    },
+    "export": {
+      "title": "Export udhaar",
+      "docTitle": "Udhaar Khata — {{name}}",
+      "noEntries": "No entries to export",
+      "failed": "Couldn't export. Please try again."
+    },
+    "a11y": {
+      "export": "Export"
+    }
+  },
+  "stats": {
+    "label": "Charts & breakdowns",
+    "view": "View stats",
+    "hide": "Hide stats"
+  },
+  "pagination": {
+    "prev": "Prev",
+    "next": "Next",
+    "showing": "Showing {{from}}–{{to}} of {{total}}",
+    "page": "Page {{page}} of {{pages}}"
+  },
+  "export": {
+    "modeTitle": "Export {{format}}",
+    "modeMessage": "Save a copy on this phone, or share it?",
+    "save": "Save to device",
+    "share": "Share",
+    "saved": "Saved to the folder you chose",
+    "failed": "Couldn't export the file. Try Share if saving keeps failing.",
+    "changeFolder": "Save to a different folder"
+  },
+  "addEntry": {
+    "label": "Add Entry",
+    "title": "What do you want to add?"
   },
   "mode": {
     "label": "Mode: {{mode}}",
@@ -16,9 +117,6 @@
     "replaceMessage": "Are you sure?"
   },
   "toast": {
-    "cardBalance": "{{card}}: {{change}} (new balance {{balance}})",
-    "demoLoaded": "Demo data loaded",
-    "cleared": "Khata cleared. Start fresh.",
     "saved": "{{name}} saved",
     "updated": "{{name}} updated",
     "deleted": "{{name}} deleted",
@@ -33,12 +131,22 @@
     "categoryAdded": "{{name}} category added",
     "debtCategoryLocked": "Udhaar categories can't be deleted",
     "otherCategoryLocked": "The \"Other\" category can't be deleted",
-    "categoryDeleted": "{{name}} deleted (its entries moved to \"Other\")",
     "maxCards": "You can add up to {{count}} cards",
     "cardAdded": "{{name}} added",
     "cardUpdated": "Card updated",
     "differentCards": "Choose two different cards",
     "notEnoughBalance": "{{name}} doesn't have enough balance",
-    "transferred": "{{amount}} moved from {{from}} to {{to}}"
+    "transferred": "{{amount}} moved from {{from}} to {{to}}",
+    "cardRequired": "Choose a card: every expense needs one",
+    "notEditable": "Saved entries can’t be edited yet",
+    "notDeletable": "Saved entries can’t be deleted yet",
+    "categoryRemoved": "{{name}} deleted",
+    "cardRenameUnsupported": "A card’s name and number can’t be changed yet",
+    "balanceTooLow": "Balance must be more than {{amount}} (the total of this card’s entries)"
+  },
+  "sync": {
+    "loading": "Loading your khata…",
+    "offline": "Couldn’t refresh. Showing your last saved data.",
+    "retry": "Retry"
   }
 }

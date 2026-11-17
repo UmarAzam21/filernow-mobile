@@ -3,6 +3,7 @@
 import { View } from "react-native";
 
 import { APP_LANGUAGES, type AppLanguage } from "@/i18n/languages";
+import { cn } from "@/lib/cn";
 
 import { LanguageRow } from "./language-row";
 
@@ -11,7 +12,7 @@ type Props = { selectedCode: AppLanguage; onSelect: (code: AppLanguage) => void;
 /** All supported languages as a radio group. */
 export function LanguageList({ selectedCode, onSelect, className }: Props) {
     return (
-        <View accessibilityRole="radiogroup" className={`gap-2 ${className ?? ""}`}>
+        <View accessibilityRole="radiogroup" className={cn("gap-2", className)}>
             {APP_LANGUAGES.map((language) => (
                 <LanguageRow
                     key={language.code}

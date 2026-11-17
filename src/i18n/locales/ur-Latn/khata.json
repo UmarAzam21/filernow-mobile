@@ -1,10 +1,111 @@
 {
   "title": "Digital Khata",
   "sections": {
-    "daily": { "title": "Rozana Khata", "description": "Apni rozana ki bikri aur kharche likhein." },
-    "business": { "title": "Karobari Khata", "description": "Stock, bills aur cash ek hi jagah sambhalein." },
-    "udhaar": { "title": "Udhaar Khata", "description": "Diya gaya udhaar aur baqaya raqam sambhalein." },
-    "party": { "title": "Party", "description": "Customers aur suppliers, balance ke saath." }
+    "daily": {
+      "title": "Rozana Khata",
+      "description": "Apni rozana ki bikri aur kharche likhein."
+    },
+    "business": {
+      "title": "Karobari Khata",
+      "description": "Stock, bills aur cash ek hi jagah sambhalein."
+    },
+    "udhaar": {
+      "title": "Udhaar Khata",
+      "description": "Diya gaya udhaar aur baqaya raqam sambhalein."
+    },
+    "party": {
+      "title": "Party",
+      "description": "Customers aur suppliers, balance ke saath."
+    }
+  },
+  "udhaar": {
+    "stats": {
+      "net": "Net Udhaar",
+      "get": "Aap ko milenge",
+      "give": "Aap ko dene hain",
+      "settled": "Barabar hisaab wali parties",
+      "netGet": "aap ko milenge",
+      "netGive": "aap ko dene hain",
+      "netZero": "hisaab barabar",
+      "getHint": "wasool karna hai",
+      "giveHint": "ada karna hai",
+      "settledHint": "clear ho chuki"
+    },
+    "actions": {
+      "gave": "Aap ne diya",
+      "got": "Aap ko mila"
+    },
+    "filter": {
+      "all": "Sab",
+      "gave": "Aap ne diya",
+      "got": "Aap ko mila"
+    },
+    "balances": {
+      "title": "Udhaar Balances",
+      "empty": "Sab hisaab barabar hai",
+      "viewAll": "Sab parties dekhein",
+      "get": "Aap ko milenge",
+      "give": "Aap ko dene hain"
+    },
+    "activity": {
+      "title": "Udhaar Activity",
+      "subtitle": "Diya vs Mila",
+      "empty": "Abhi koi udhaar activity nahi",
+      "gave": "Diya",
+      "got": "Mila",
+      "grain": {
+        "day": "Rozana",
+        "week": "Haftawar",
+        "month": "Mahana"
+      }
+    },
+    "list": {
+      "title": "Transactions ({{total}})",
+      "search": "Party, qism ya note dhoondein",
+      "empty": "Abhi koi udhaar nahi. Upar \"Aap ne diya\" ya \"Aap ko mila\" dabayein ya demo data load karein.",
+      "noMatch": "Is filter mein koi entry nahi mili."
+    },
+    "picker": {
+      "title": "Party chunein",
+      "new": "+ Nayi party"
+    },
+    "delete": {
+      "title": "Entry delete karein?",
+      "confirm": "Haan, delete"
+    },
+    "export": {
+      "title": "Udhaar export karein",
+      "docTitle": "Udhaar Khata — {{name}}",
+      "noEntries": "Export ke liye koi entry nahi hai",
+      "failed": "Export nahi ho saka. Dobara koshish karein."
+    },
+    "a11y": {
+      "export": "Export"
+    }
+  },
+  "stats": {
+    "label": "Activity, categories aur mazeed",
+    "view": "Stats dekhein",
+    "hide": "Stats chhupayein"
+  },
+  "pagination": {
+    "prev": "Pichla",
+    "next": "Agla",
+    "showing": "{{total}} mein se {{from}}–{{to}}",
+    "page": "Page {{page}} / {{pages}}"
+  },
+  "export": {
+    "modeTitle": "{{format}} export karein",
+    "modeMessage": "Is phone mein save karein ya share karein?",
+    "save": "Phone mein save karein",
+    "share": "Share karein",
+    "saved": "Aap ke chune hue folder mein save ho gaya",
+    "failed": "File export nahi ho saki. Save na ho to Share try karein.",
+    "changeFolder": "Doosre folder mein save karein"
+  },
+  "addEntry": {
+    "label": "Entry add karein",
+    "title": "Kya add karna hai?"
   },
   "mode": {
     "label": "Mode: {{mode}}",
@@ -16,9 +117,6 @@
     "replaceMessage": "Pakka?"
   },
   "toast": {
-    "cardBalance": "{{card}}: {{change}} (naya balance {{balance}})",
-    "demoLoaded": "Demo data load ho gaya",
-    "cleared": "Khata saaf ho gaya. Naye sire se shuru karein",
     "saved": "{{name}} save ho gaya",
     "updated": "{{name}} update ho gaya",
     "deleted": "{{name}} delete ho gaya",
@@ -33,12 +131,22 @@
     "categoryAdded": "{{name}} category add ho gayi",
     "debtCategoryLocked": "Udhaar categories delete nahi ho sakti",
     "otherCategoryLocked": "\"Other\" category delete nahi ho sakti",
-    "categoryDeleted": "{{name}} delete ho gayi (entries \"Other\" me chali gayin)",
     "maxCards": "Sirf {{count}} cards add ho sakte hain",
     "cardAdded": "{{name}} add ho gaya",
     "cardUpdated": "Card update ho gaya",
     "differentCards": "Alag alag cards chunein",
     "notEnoughBalance": "{{name}} me itna balance nahi hai",
-    "transferred": "{{amount}} {{from}} se {{to}} me transfer hue"
+    "transferred": "{{amount}} {{from}} se {{to}} me transfer hue",
+    "cardRequired": "Card chunein: har kharche ke liye card zaroori hai",
+    "notEditable": "Save ki hui entries abhi edit nahi ho sakti",
+    "notDeletable": "Save ki hui entries abhi delete nahi ho sakti",
+    "categoryRemoved": "{{name}} delete ho gayi",
+    "cardRenameUnsupported": "Card ka naam aur number abhi badla nahi ja sakta",
+    "balanceTooLow": "Balance {{amount}} se zyada hona chahiye (is card ki entries ka total)"
+  },
+  "sync": {
+    "loading": "Aap ka khata load ho raha hai…",
+    "offline": "Refresh nahi ho saka. Aakhri saved data dikhaya ja raha hai.",
+    "retry": "Dobara koshish"
   }
 }

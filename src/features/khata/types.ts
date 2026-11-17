@@ -43,6 +43,8 @@ export interface IExpenseEntry {
     receiptImage?: string;   // base64 / local file URI
     partyId?: string;
     createdAt?: string;      // ISO timestamp, orders same-day entries in ledgers
+    /** Stored on the server (income/expense). The API can't edit or delete these yet. */
+    remote?: boolean;
 }
 
 export type SortField = "date" | "amount" | "subject";
@@ -68,8 +70,9 @@ export interface ICard {
     label: string;
     balance: number;
     last4: string;
-    expiryMonth: number;
-    expiryYear: number;
+    /** Only known if the card was added on this phone (the server doesn't return expiry). */
+    expiryMonth?: number;
+    expiryYear?: number;
     gradient: "primary" | "secondary" | "dark";
 }
 

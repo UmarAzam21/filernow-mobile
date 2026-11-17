@@ -3,7 +3,7 @@
 import { SymbolView } from "expo-symbols";
 import { Pressable, Text, View } from "react-native";
 
-import { pkr } from "@/features/khata/lib/debt";
+import { debtSign, pkr } from "@/features/khata/lib/debt";
 import type { EntryKind, IExpenseEntry } from "@/features/khata/types";
 import { cn } from "@/lib/cn";
 import { entryDateTime } from "@/lib/date-format";
@@ -18,14 +18,17 @@ const KIND: Record<EntryKind, { badge: string; text: string }> = {
 type Props = {
     entry: IExpenseEntry;
     categoryLabel: string;
-    onDelete: (entry: IExpenseEntry) => void;
-    /** Omit for entries that are edited elsewhere (udhaar entries are edited in the Party screen). */
+    /** Omit when the entry can't be deleted here (server entries: the API has no delete yet). */
+    onDelete?: (entry: IExpenseEntry) => void;
+    /** Omit for entries that are edited elsewhere (udhaar → Party screen) or can't be edited (server). */
     onEdit?: (entry: IExpenseEntry) => void;
 };
 
 export function TransactionRow({ entry, categoryLabel, onDelete, onEdit }: Props) {
     const kind = KIND[entry.kind];
-    const income = entry.kind === "income";
+    // const income = entry.kind === "income";
+    // money coming in: income, or a "You Got" udhaar type (same rule as the web dashboard)
+    const credit = entry.kind === "income" || debtSign(entry) < 0;
 
     return (
         <View className="flex-row items-center gap-3 border-b border-border-clr bg-white px-4 py-3">
@@ -42,8 +45,8 @@ export function TransactionRow({ entry, categoryLabel, onDelete, onEdit }: Props
                     </Text>
                 </View>
             </View>
-            <Text className={cn("font-jakarta-bold text-sm", income ? "text-success" : "text-text-secondary")}>
-                {income ? "+" : "-"}
+            <Text className={cn("font-jakarta-bold text-sm", credit ? "text-success" : "text-text-secondary")}>
+                {credit ? "+" : "-"}
                 {pkr(entry.amount)}
             </Text>
             {onEdit ? (
@@ -51,9 +54,11 @@ export function TransactionRow({ entry, categoryLabel, onDelete, onEdit }: Props
                     <SymbolView name={{ ios: "pencil", android: "edit", web: "edit" }} size={17} tintColor={colors["text-secondary"]} />
                 </Pressable>
             ) : null}
-            <Pressable accessibilityRole="button" accessibilityLabel="Delete entry" onPress={() => onDelete(entry)} hitSlop={10}>
-                <SymbolView name={{ ios: "trash", android: "delete", web: "delete" }} size={17} tintColor={colors["text-secondary-muted"]} />
-            </Pressable>
+            {onDelete ? (
+                <Pressable accessibilityRole="button" accessibilityLabel="Delete entry" onPress={() => onDelete(entry)} hitSlop={10}>
+                    <SymbolView name={{ ios: "trash", android: "delete", web: "delete" }} size={17} tintColor={colors["text-secondary-muted"]} />
+                </Pressable>
+            ) : null}
         </View>
     );
 }
