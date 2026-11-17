@@ -11,6 +11,19 @@ export const APP_LANGUAGES = [
 ] as const;
 
 export type AppLanguageConfig = (typeof APP_LANGUAGES)[number];
+
+/**
+ * Regional languages shown in the picker as "Coming soon". Not selectable: there are no
+ * translation files for them yet. To launch one, add its locale folder + resources entry
+ * and move it into APP_LANGUAGES (all of these read right to left).
+ */
+export const UPCOMING_LANGUAGES = [
+    { code: "pa", name: "Punjabi", nativeName: "پنجابی" },
+    { code: "sd", name: "Sindhi", nativeName: "سنڌي" },
+    { code: "ps", name: "Pashto", nativeName: "پښتو" },
+    { code: "bal", name: "Balochi", nativeName: "بلوچی" },
+    { code: "skr", name: "Saraiki", nativeName: "سرائیکی" },
+] as const;
 export type AppLanguage = AppLanguageConfig["code"];
 
 export const DEFAULT_LANGUAGE: AppLanguage = "en";

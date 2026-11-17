@@ -17,6 +17,7 @@ export function TransferSheet({ visible, onClose }: Props) {
     const [fromId, setFromId] = useState("");
     const [toId, setToId] = useState("");
     const [amount, setAmount] = useState("");
+    const [saving, setSaving] = useState(false);
 
     useEffect(() => {
         if (visible) {
@@ -44,11 +45,13 @@ export function TransferSheet({ visible, onClose }: Props) {
             footer={
                 <FormButton
                     label="Transfer Karein"
-                    disabled={!canTransfer}
-                    onPress={() => {
-                        if (!from || !to) return;
-                        transferBetweenCards(from.id, to.id, value);
-                        onClose();
+                    disabled={!canTransfer || saving}
+                    onPress={async () => {
+                        if (!from || !to || saving) return;
+                        setSaving(true);
+                        const ok = await transferBetweenCards(from.id, to.id, value);
+                        setSaving(false);
+                        if (ok) onClose(); // on failure the sheet stays open with the error toast
                     }}
                 />
             }>

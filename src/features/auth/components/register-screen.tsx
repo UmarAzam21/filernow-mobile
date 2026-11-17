@@ -22,8 +22,10 @@ import {
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { colors } from "../../../theme/tokens";
-import { checkPhone } from "../lib/mock-auth";
+import { apiErrorMessage } from "@/lib/api/errors";
+
 import { formatPhone, isValidPhone } from "../lib/phone";
+import { nextStepFor } from "../lib/session";
 
 import MaskedView from "@react-native-masked-view/masked-view";
 import { LinearGradient } from "expo-linear-gradient";
@@ -200,7 +202,7 @@ function GradientText3D({ text, className, gradient, side, depth = EXTRUDE }: { 
 export default function RegisterScreen({
   onContinue,
 }: {
-  onContinue: (phone: string, exists: boolean) => void;
+  onContinue: (phone: string, next: "login" | "set_pin") => void;
 }) {
   const insets = useSafeAreaInsets();
   const { width } = useWindowDimensions();
@@ -284,11 +286,11 @@ export default function RegisterScreen({
     if (!valid || loading) return;
     setLoading(true);
     try {
-      // existing number -> login with PIN, new number -> create a PIN
-      const { exists } = await checkPhone(phone);
-      onContinue(phone, exists);
-    } catch {
-      setRequestError(t("register.networkError"));
+      // the server says whether the number is registered: login, or create a PIN
+      onContinue(phone, await nextStepFor(phone));
+    } catch (e) {
+      // e.g. offline, too many checks (429), or a number owned by another kind of account (409)
+      setRequestError(apiErrorMessage(e));
     } finally {
       setLoading(false);
     }
@@ -479,6 +481,7 @@ export default function RegisterScreen({
                 onPress={handleContinue}
                 disabled={!valid || loading}
                 accessibilityRole="button"
+                accessibilityState={{ busy: loading, disabled: !valid || loading }}
                 style={({ pressed }) => ({
                   opacity: pressed ? 0.95 : 1,
                   transform: [{ translateY: pressed ? 2 : 0 }],

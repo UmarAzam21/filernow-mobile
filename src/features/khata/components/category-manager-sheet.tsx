@@ -33,6 +33,7 @@ export function CategoryManagerSheet({ visible, onClose }: Props) {
     const [tab, setTab] = useState<EntryKind>("expense");
     const [label, setLabel] = useState("");
     const [color, setColor] = useState<ICategory["color"]>("neutral");
+    const [saving, setSaving] = useState(false);
     const list = categories.filter((c) => c.kind === tab);
 
     const confirmDelete = (c: ICategory) =>
@@ -75,10 +76,12 @@ export function CategoryManagerSheet({ visible, onClose }: Props) {
                     </View>
                     <FormButton
                         label="Category Add Karein"
-                        disabled={!label.trim()}
-                        onPress={() => {
-                            addCategory(label, color, tab);
-                            setLabel("");
+                        disabled={!label.trim() || saving}
+                        onPress={async () => {
+                            setSaving(true);
+                            // keep the typed name if the server refused it, so it can be fixed
+                            if (await addCategory(label, color, tab)) setLabel("");
+                            setSaving(false);
                         }}
                     />
                 </View>

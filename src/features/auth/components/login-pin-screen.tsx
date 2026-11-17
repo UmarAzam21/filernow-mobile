@@ -6,10 +6,11 @@ import { useTranslation } from "react-i18next";
 import { Pressable, Text } from "react-native";
 
 import { useBiometric } from "@/features/biometric/hooks/use-biometric";
+import { apiErrorMessage } from "@/lib/api/errors";
 
 import { usePinEntry } from "../hooks/use-pin-entry";
-import { verifyPin } from "../lib/mock-auth";
 import { maskPhone } from "../lib/phone";
+import { loginWithPin, restoreBiometricSession } from "../lib/session";
 import { PinDots } from "./pin-dots";
 import { PinKeypad } from "./pin-keypad";
 import { PinScreenLayout } from "./pin-screen-layout";
@@ -26,8 +27,14 @@ type Props = {
   onForgotPin?: () => void;
 };
 
-/** Login for a registered number (and the App Lock screen): enter the existing PIN or use biometrics. */
-export default function LoginPinScreen({ phone, onBack, onChangeNumber, onSuccess, onForgotPin }: Props) {
+/** Login (and the App Lock screen): enter the PIN or use biometrics. Opens a server session. */
+export default function LoginPinScreen({
+  phone,
+  onBack,
+  onChangeNumber,
+  onSuccess,
+  onForgotPin,
+}: Props) {
   const { t } = useTranslation("auth");
   const [loading, setLoading] = useState(false);
   const [done, setDone] = useState(false);
@@ -40,20 +47,17 @@ export default function LoginPinScreen({ phone, onBack, onChangeNumber, onSucces
     onComplete: async (pin, { fail }) => {
       setLoading(true);
       try {
-        if (await verifyPin(phone, pin)) {
+        if (await loginWithPin(phone, pin)) {
           setDone(true);
           onSuccess();
           return;
         }
         const left = attemptsLeft - 1;
         setAttemptsLeft(left);
-        fail(
-          left === 0
-            ? t("pin.tooManyAttempts")
-            : t("pin.incorrect", { count: left }),
-        );
-      } catch {
-        fail(t("pin.verifyFailed"));
+        // Get Started already confirmed the number is registered, so a 401 means a wrong PIN
+        fail(left === 0 ? t("pin.tooManyAttempts") : t("pin.incorrect", { count: left }));
+      } catch (e) {
+        fail(apiErrorMessage(e));
       } finally {
         setLoading(false);
       }
@@ -66,11 +70,23 @@ export default function LoginPinScreen({ phone, onBack, onChangeNumber, onSucces
   const loginWithBiometric = async () => {
     if (disabled) return;
     const result = await biometric.authenticate(t("biometric.loginPrompt"));
-    if (result.success) {
-      setDone(true);
-      onSuccess();
-    } else if (!result.cancelled) {
-      entry.fail(result.message);
+    if (!result.success) {
+      if (!result.cancelled) entry.fail(result.message);
+      return;
+    }
+    setLoading(true);
+    try {
+      // resume the server session kept for biometrics; if it expired, the PIN is needed once
+      if (await restoreBiometricSession(phone)) {
+        setDone(true);
+        onSuccess();
+      } else {
+        entry.fail(t("biometric.sessionExpired"));
+      }
+    } catch (e) {
+      entry.fail(apiErrorMessage(e));
+    } finally {
+      setLoading(false);
     }
   };
 

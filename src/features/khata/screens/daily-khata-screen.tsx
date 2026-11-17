@@ -3,8 +3,8 @@
 import { Stack, useRouter } from "expo-router";
 import { SymbolView } from "expo-symbols";
 import { useTranslation } from "react-i18next";
-import { useEffect, useMemo, useState } from "react";
-import { Alert, FlatList, Pressable, ScrollView, Text, View } from "react-native";
+import { useMemo, useState } from "react";
+import { Alert, FlatList, Pressable, RefreshControl, ScrollView, Text, View } from "react-native";
 
 import { Input } from "@/components/ui/form";
 import { OptionSheet } from "@/components/ui/option-sheet";
@@ -12,7 +12,7 @@ import { useActiveBusiness } from "@/features/business/store/business-store";
 import { CardsManager } from "@/features/khata/components/cards-manager";
 import { CategoryManagerSheet } from "@/features/khata/components/category-manager-sheet";
 import { DailyCharts } from "@/features/khata/components/daily-charts";
-import { DataModeBar } from "@/features/khata/components/data-mode-bar";
+import { KhataSyncBar } from "@/features/khata/components/khata-sync-bar";
 import { DetailedEntrySheet } from "@/features/khata/components/detailed-entry-sheet";
 import { PaginationBar } from "@/features/khata/components/pagination-bar";
 import { StatCard, type StatCtaVariant } from "@/features/khata/components/stat-card";
@@ -89,6 +89,8 @@ export default function DailyKhataScreen() {
     const { entries, parties, cards } = useBusinessData();
     const categories = useKhataStore((s) => s.categories);
     const deleteEntry = useKhataStore((s) => s.deleteEntry);
+    const sync = useKhataStore((s) => s.sync);
+    const syncing = useKhataStore((s) => s.syncing);
     const stats = useDailyStats();
 
     const [filter, setFilter] = useState<FilterTab>("all");
@@ -127,8 +129,18 @@ export default function DailyKhataScreen() {
             .sort(COMPARE[sortKey]);
     }, [entries, filter, q, sortKey, categoryLabel]);
 
-    // back to page 1 whenever the list itself changes shape
-    useEffect(() => setPage(1), [filter, q, sortKey]);
+    const changeFilter = (value: FilterTab) => {
+        setPage(1);
+        setFilter(value);
+    };
+    const changeQuery = (value: string) => {
+        setPage(1);
+        setQ(value);
+    };
+    const changeSort = (value: SortKey) => {
+        setPage(1);
+        setSortKey(value);
+    };
 
     // deleting the last row of the last page must not leave us on an empty page
     const pages = Math.max(1, Math.ceil(shown.length / PAGE_SIZE));
@@ -223,9 +235,11 @@ export default function DailyKhataScreen() {
                 keyExtractor={(e) => e.id}
                 keyboardShouldPersistTaps="handled"
                 contentContainerStyle={{ paddingBottom: 96 }} // room for the sticky Add Entry button
+                // pull down to reload from the server
+                refreshControl={<RefreshControl refreshing={syncing} onRefresh={sync} tintColor={colors.primary} colors={[colors.primary]} />}
                 ListHeaderComponent={
                     <View>
-                        <DataModeBar />
+                        <KhataSyncBar />
 
                         <View className="flex-row flex-wrap gap-3 px-4 pt-4">
                             {stats.map((item) => (
@@ -253,7 +267,7 @@ export default function DailyKhataScreen() {
                                     key={tab.key}
                                     accessibilityRole="tab"
                                     accessibilityState={{ selected: filter === tab.key }}
-                                    onPress={() => setFilter(tab.key)}
+                                    onPress={() => changeFilter(tab.key)}
                                     className={cn(
                                         "min-h-10 flex-row items-center gap-2 rounded-full border px-4",
                                         filter === tab.key ? "border-primary bg-primary" : "border-border-clr bg-white",
@@ -274,7 +288,7 @@ export default function DailyKhataScreen() {
                                     icon={{ ios: "magnifyingglass", android: "search", web: "search" }}
                                     placeholder="Subject ya category dhoondein"
                                     value={q}
-                                    onChangeText={setQ}
+                                    onChangeText={changeQuery}
                                     autoCorrect={false}
                                 />
                             </View>
@@ -308,8 +322,9 @@ export default function DailyKhataScreen() {
                     <TransactionRow
                         entry={item}
                         categoryLabel={labelOf(item.categoryId)}
-                        onDelete={confirmDelete}
-                        onEdit={item.kind === "debt" ? undefined : setEditing}
+                        // server entries can't be edited/deleted through the API yet
+                        onDelete={item.remote ? undefined : confirmDelete}
+                        onEdit={item.remote || item.kind === "debt" ? undefined : setEditing}
                     />
                 )}
                 ListFooterComponent={<PaginationBar page={safePage} pageSize={PAGE_SIZE} total={shown.length} onChange={setPage} />}
@@ -324,7 +339,7 @@ export default function DailyKhataScreen() {
                 <Text className="font-jakarta-bold text-sm text-white">{t("addEntry.label")}</Text>
             </Pressable>
 
-            <OptionSheet visible={sortOpen} title="Tarteeb" options={SORTS} value={sortKey} onChange={setSortKey} onClose={() => setSortOpen(false)} />
+            <OptionSheet visible={sortOpen} title="Tarteeb" options={SORTS} value={sortKey} onChange={changeSort} onClose={() => setSortOpen(false)} />
 
             {/* <OptionSheet<ExportKind | "">
                 visible={exportOpen}

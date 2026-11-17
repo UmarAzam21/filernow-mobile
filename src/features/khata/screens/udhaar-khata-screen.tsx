@@ -2,14 +2,13 @@
 
 import { Stack, useRouter } from "expo-router";
 import { SymbolView } from "expo-symbols";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Alert, FlatList, Pressable, Text, View } from "react-native";
 
 import { Input } from "@/components/ui/form";
 import { OptionSheet } from "@/components/ui/option-sheet";
 import { useActiveBusiness } from "@/features/business/store/business-store";
-import { DataModeBar } from "@/features/khata/components/data-mode-bar";
 import { ExportFlow } from "@/features/khata/components/export-flow";
 import { PaginationBar } from "@/features/khata/components/pagination-bar";
 import { StatCard } from "@/features/khata/components/stat-card";
@@ -82,22 +81,25 @@ export default function UdhaarKhataScreen() {
         [debtEntries, partyById],
     );
 
-    const shown = useMemo(() => {
-        const k = q.trim().toLowerCase();
-        return debtEntries
-            .filter((e) => {
-                const s = debtSign(e);
-                return (
-                    (filter === "all" || (filter === "gave" ? s > 0 : s < 0)) &&
-                    (!k || `${e.subject} ${debtLabel(e.categoryId)} ${e.description ?? ""}`.toLowerCase().includes(k))
-                );
-            })
-            .sort((a, b) => entrySortKey(b).localeCompare(entrySortKey(a)));
-        // `t` changes with the language, so translated debt labels re-evaluate for search
-    }, [debtEntries, filter, q, t]);
+    const k = q.trim().toLowerCase();
+    const shown = debtEntries
+        .filter((e) => {
+            const s = debtSign(e);
+            return (
+                (filter === "all" || (filter === "gave" ? s > 0 : s < 0)) &&
+                (!k || `${e.subject} ${debtLabel(e.categoryId)} ${e.description ?? ""}`.toLowerCase().includes(k))
+            );
+        })
+        .sort((a, b) => entrySortKey(b).localeCompare(entrySortKey(a)));
 
-    // back to page 1 whenever the list itself changes shape
-    useEffect(() => setPage(1), [filter, q]);
+    const changeFilter = (value: Filter) => {
+        setPage(1);
+        setFilter(value);
+    };
+    const changeQuery = (value: string) => {
+        setPage(1);
+        setQ(value);
+    };
 
     // deleting the last row of the last page must not leave us on an empty page
     const pages = Math.max(1, Math.ceil(shown.length / PAGE_SIZE));
@@ -163,8 +165,6 @@ export default function UdhaarKhataScreen() {
                 contentContainerStyle={{ paddingBottom: 104 }} // room for the sticky action bar
                 ListHeaderComponent={
                     <View>
-                        <DataModeBar />
-
                         <View className="flex-row flex-wrap gap-3 px-4 pt-4">
                             {stats.map((item) => (
                                 // no real month-over-month number here, so no trend chip
@@ -204,7 +204,7 @@ export default function UdhaarKhataScreen() {
                                     key={f}
                                     accessibilityRole="tab"
                                     accessibilityState={{ selected: filter === f }}
-                                    onPress={() => setFilter(f)}
+                                    onPress={() => changeFilter(f)}
                                     className={cn(
                                         "min-h-10 justify-center rounded-full border px-4",
                                         filter === f ? "border-primary bg-primary" : "border-border-clr bg-white",
@@ -221,7 +221,7 @@ export default function UdhaarKhataScreen() {
                                 icon={{ ios: "magnifyingglass", android: "search", web: "search" }}
                                 placeholder={t("udhaar.list.search")}
                                 value={q}
-                                onChangeText={setQ}
+                                onChangeText={changeQuery}
                                 autoCorrect={false}
                             />
                         </View>

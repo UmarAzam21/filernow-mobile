@@ -28,7 +28,20 @@
   },
   "date": {
     "days": ["Itwar", "Peer", "Mangal", "Budh", "Jumerat", "Juma", "Hafta"],
-    "months": ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],
+    "months": [
+      "Jan",
+      "Feb",
+      "Mar",
+      "Apr",
+      "May",
+      "Jun",
+      "Jul",
+      "Aug",
+      "Sep",
+      "Oct",
+      "Nov",
+      "Dec"
+    ],
     "am": "AM",
     "pm": "PM"
   },
@@ -41,5 +54,74 @@
     "yesterday": "Kal",
     "days_one": "{{count}} din pehle",
     "days_other": "{{count}} din pehle"
+  },
+  "assistant": {
+    "greeting": "Assalam o Alaikum! Main kya madad karoon?",
+    "subtitle": "Bas mujh se baat karein. Ek saath kai entries add karein, apne kharch ke baare mein poochein ya kuch badlein. Save karne se pehle main aap se poochunga.",
+    "listening": "Sun raha hoon…",
+    "tapToSend": "Baat khatam ho to golay ko dabayein",
+    "thinking": "Soch raha hoon…",
+    "placeholder": "Ya yahan likhein…",
+    "send": "Bhejein",
+    "startListening": "AI se baat karein",
+    "stopListening": "Rokein aur bhejein",
+    "examples": [
+      "Aaj 500 ka petrol aur 300 ki chai",
+      "Aaj ka kharcha bata do",
+      "Mere HBL card mein kitne paise hain?"
+    ],
+    "micDenied": "Microphone ki ijazat band hai. AI se baat karne ke liye phone settings mein on karein.",
+    "recordFailed": "Record nahi ho saka. Dobara koshish karein.",
+    "tooShort": "Main sun nahi saka. Golay ko daba kar thora zyada bolein.",
+    "pending": {
+      "title_one": "Main yeh karunga:",
+      "title_other": "Main yeh {{count}} kaam karunga:",
+      "hint": "Confirm dabayein ya bas “haan” kahein. Aap tabdeeli bhi keh sakte hain, jaise “1500 kar do”.",
+      "confirm": "Confirm",
+      "cancel": "Cancel"
+    },
+    "data": {
+      "currency": "Rs",
+      "more_one": "aur {{count}} mazeed",
+      "more_other": "aur {{count}} mazeed",
+      "kinds": {
+        "summary": "Khulasa",
+        "balance": "Card balance",
+        "entries": "Entries",
+        "transactions": "Len den",
+        "details": "Tafseel"
+      },
+      "fields": {
+        "amount": "Raqam",
+        "balance": "Balance",
+        "by_card": "Card ke hisaab se",
+        "by_category": "Category ke hisaab se",
+        "card": "Card",
+        "cards": "Cards",
+        "category": "Category",
+        "count": "Entries",
+        "date": "Tareekh",
+        "description": "Note",
+        "entries": "Entries",
+        "expense": "Akhrajaat",
+        "income": "Aamdani",
+        "items": "Items",
+        "name": "Naam",
+        "net": "Khalis",
+        "party": "Party",
+        "subject": "Item",
+        "title": "Item",
+        "total": "Kul",
+        "type": "Qisam"
+      }
+    }
+  },
+  "errors": {
+    "generic": "Kuch ghalat ho gaya. Dobara koshish karein.",
+    "network": "Server se rabta nahi ho saka. Apna internet connection check karein.",
+    "sessionExpired": "Aap ka session khatam ho gaya hai. Dobara log in karein.",
+    "tooManyRequests": "Bohat zyada requests. Thori der baad dobara koshish karein.",
+    "maintenance": "Hum kuch maintenance kar rahe hain. Baad mein dobara koshish karein.",
+    "retry": "Dobara koshish karein"
   }
 }

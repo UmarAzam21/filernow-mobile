@@ -16,19 +16,19 @@ import { colors } from "@/theme/tokens";
 
 type Kind = "income" | "expense";
 type Props = { visible: boolean; kind: Kind; editing?: IExpenseEntry | null; onClose: () => void };
-type Errors = { subject?: string; amount?: string; category?: string };
+type Errors = { subject?: string; amount?: string; category?: string; card?: string };
 
 export function DetailedEntrySheet({ visible, kind, editing, onClose }: Props) {
     const categories = useKhataStore((s) => s.categories);
     const addEntry = useKhataStore((s) => s.addEntry);
     const updateEntry = useKhataStore((s) => s.updateEntry);
-    const { cards, parties } = useBusinessData();
+    const { cards } = useBusinessData();
     const labels = KHATA_LABELS[kind];
 
     const categoryOptions = useMemo(() => categories.filter((c) => c.kind === kind), [categories, kind]);
 
     const [subject, setSubject] = useState("");
-    const [partyId, setPartyId] = useState("");
+    const [saving, setSaving] = useState(false);
     const [categoryId, setCategoryId] = useState("");
     const [amount, setAmount] = useState("");
     const [date, setDate] = useState(localDate());
@@ -43,7 +43,6 @@ export function DetailedEntrySheet({ visible, kind, editing, onClose }: Props) {
         const first = categoryOptions[0]?.id ?? "";
         if (editing) {
             setSubject(editing.subject);
-            setPartyId(editing.partyId ?? "");
             setCategoryId(categoryOptions.some((c) => c.id === editing.categoryId) ? editing.categoryId : first);
             setAmount(String(editing.amount));
             setDate(editing.date.slice(0, 10));
@@ -52,32 +51,33 @@ export function DetailedEntrySheet({ visible, kind, editing, onClose }: Props) {
             setNote(editing.description ?? "");
         } else {
             setSubject("");
-            setPartyId("");
             setCategoryId(first);
             setAmount("");
             setDate(localDate());
             setTime(localTime());
-            setCardId(""); // Cash by default
+            // income defaults to Cash; an expense needs a card, so preselect the first one
+            setCardId(kind === "expense" ? (cards[0]?.id ?? "") : "");
             setNote("");
         }
         // reset only when the sheet opens or a different entry is edited
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [visible, editing?.id, kind]);
 
-    const submit = () => {
+    const submit = async () => {
+        if (saving) return;
         const value = Number(amount);
         const next: Errors = {};
         if (subject.trim().length < 2) next.subject = "Zaroori hai (kam az kam 2 huroof)";
         if (!(value > 0)) next.amount = "Sahi amount likhein";
         if (!categoryId) next.category = "Category chunein";
+        // the API requires a card for every expense
+        if (kind === "expense" && !cardId) next.card = cards.length ? "Card chunein" : "Pehle 'My Cards' mein card add karein";
         setErrors(next);
         if (Object.keys(next).length) return;
 
-        const party = parties.find((p) => p.id === partyId);
         const payload = {
             kind,
-            subject: subject.trim() || party?.name || "",
-            partyId: partyId || undefined,
+            subject: subject.trim(),
             categoryId,
             amount: value,
             date,
@@ -85,9 +85,10 @@ export function DetailedEntrySheet({ visible, kind, editing, onClose }: Props) {
             description: note.trim() || undefined,
             cardId: cardId || undefined,
         };
-        if (editing) updateEntry(editing.id, payload);
-        else addEntry(payload);
-        onClose();
+        setSaving(true);
+        const ok = editing ? updateEntry(editing.id, payload) : await addEntry(payload);
+        setSaving(false);
+        if (ok) onClose();
     };
 
     return (
@@ -96,7 +97,9 @@ export function DetailedEntrySheet({ visible, kind, editing, onClose }: Props) {
             onClose={onClose}
             title={editing ? `${labels.noun} Edit Karein` : labels.verb}
             subtitle={kind === "income" ? "Jo paise aap ko mile, unka record" : "Jo paise aap ne kharch kiye, unka record"}
-            footer={<FormButton label={editing ? "Tabdeeliyan Save Karein" : "Entry Save Karein"} onPress={submit} />}>
+            footer={
+                <FormButton label={editing ? "Tabdeeliyan Save Karein" : "Entry Save Karein"} onPress={submit} disabled={saving} />
+            }>
             <Field label={labels.subjectLabel} required error={errors.subject}>
                 <Input placeholder={labels.subjectPlaceholder} value={subject} onChangeText={setSubject} autoCorrect={false} />
             </Field>
@@ -128,20 +131,19 @@ export function DetailedEntrySheet({ visible, kind, editing, onClose }: Props) {
                 </View>
             </View>
 
-            <Field label={labels.cardLabel ?? "Card"} hint="Card chunenge to uska balance khud update ho jayega">
+            <Field
+                label={kind === "expense" ? "Kis card se kharcha kiya" : (labels.cardLabel ?? "Card")}
+                required={kind === "expense"}
+                error={errors.card}
+                hint="Card ka balance khud update ho jayega">
                 <ChipGroup
-                    options={[{ value: "", label: "Cash" }, ...cards.map((c) => ({ value: c.id, label: `${c.label} · ${pkr(c.balance)}` }))]}
+                    options={[
+                        // income can be cash; an expense must come from a card (API rule)
+                        ...(kind === "income" ? [{ value: "", label: "Cash" }] : []),
+                        ...cards.map((c) => ({ value: c.id, label: `${c.label} · ${pkr(c.balance)}` })),
+                    ]}
                     value={cardId}
                     onChange={setCardId}
-                />
-            </Field>
-
-            <Field label="Party" hint="Optional. Kisi party se related ho to chunein">
-                <ChipGroup
-                    scroll
-                    options={[{ value: "", label: "Koi nahi" }, ...parties.map((p) => ({ value: p.id, label: p.name }))]}
-                    value={partyId}
-                    onChange={setPartyId}
                 />
             </Field>
 
