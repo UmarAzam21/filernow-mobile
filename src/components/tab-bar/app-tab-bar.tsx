@@ -3,11 +3,13 @@
 import { Image } from "expo-image";
 import type { BottomTabBarProps } from "expo-router/tabs";
 import { useTranslation } from "react-i18next";
-import { Pressable, Text, View } from "react-native";
+import { Pressable, Text, useWindowDimensions, View } from "react-native";
+import Svg, { G, Path, Rect } from "react-native-svg";
 
 import { type EmIconName, emIcons } from "@/constants/expense-manager-icons";
 import { useAssistantStore } from "@/features/assistant/store/assistant-store";
 import type { Resources } from "@/i18n/resources";
+import { colors } from "@/theme/tokens";
 
 type TabLabelKey = keyof Resources["common"]["tabs"];
 
@@ -34,34 +36,76 @@ export const TAB_DEFS: TabDef[] = [
 const ACTIVE = "#C8102E";
 const INACTIVE = "#8A8285";
 const ICON = 26;
-// AI orb + white ring = 50px; its bottom lines up with the other icons, so it rises ~16px above the bar.
-const CENTER = 44;
-const CENTER_RING = 3;
+const PAD_TOP = 8;
 
-/** Bottom navigation: flat white bar, 3D icons (grey when inactive), slightly raised "Ask AI" orb in the middle. */
+// Floating round button that sits in a circular notch cut into the top edge of the bar.
+const ORB = 58; // button diameter
+const GAP = 6; // even gap between the button and the notch
+const NOTCH_R = ORB / 2 + GAP; // notch = circle around the button centre, which sits on the bar edge
+const NOTCH_TILT = (35 * Math.PI) / 180; // where the shoulder curve meets the circle
+const SHOULDER = 10; // extra run-in of the shoulder curve along the bar edge
+const SHADOW = 6; // room above the bar for its soft top shadow
+const BAR_LINE = "#ECE7E6";
+
+/**
+ * Top edge of the bar (open path, y = 0 is the bar edge): flat, a smooth shoulder, a circular arc
+ * around the button, the mirrored shoulder, flat again. Shoulders are tangent to the arc, so no kinks.
+ */
+function notchEdge(cx: number, w: number) {
+    const px = NOTCH_R * Math.cos(NOTCH_TILT); // arc start/end, relative to cx
+    const py = NOTCH_R * Math.sin(NOTCH_TILT);
+    const ctrl = NOTCH_R / Math.cos(NOTCH_TILT); // tangent at the arc start meets the bar edge here
+    return (
+        `M0 0 L${cx - ctrl - SHOULDER} 0 ` +
+        `Q${cx - ctrl} 0 ${cx - px} ${py} ` +
+        `A${NOTCH_R} ${NOTCH_R} 0 0 0 ${cx + px} ${py} ` +
+        `Q${cx + ctrl} 0 ${cx + ctrl + SHOULDER} 0 ` +
+        `L${w} 0`
+    );
+}
+
+/** Bottom navigation: white bar with a circular notch, 3D icons (grey when inactive), floating AI orb in the middle. */
 export function AppTabBar({ state, descriptors, navigation, insets }: BottomTabBarProps) {
     const { t } = useTranslation();
+    const { width } = useWindowDimensions();
     const showAssistant = useAssistantStore((s) => s.show);
     const tabs = TAB_DEFS.map((def) => ({ def, route: state.routes.find((r) => r.name === def.name) })).filter(
         (t): t is { def: TabDef; route: (typeof state.routes)[number] } => t.route !== undefined,
     );
     const focusedName = state.routes[state.index]?.name;
 
+    // tabs are equal width, so the notch sits at the centre of the center tab
+    const centerIndex = tabs.findIndex((x) => x.def.center);
+    const cx = ((centerIndex < 0 ? tabs.length / 2 : centerIndex + 0.5) * width) / Math.max(tabs.length, 1);
+    const edge = notchEdge(cx, width);
+    const notchH = NOTCH_R + 2; // bar part drawn by the SVG (below that it is a plain white view)
+    const svgH = SHADOW + notchH;
+
     return (
-        <View
-            className="flex-row bg-white"
-            style={{
-                borderTopWidth: 1,
-                borderTopColor: "#EFEAEA",
-                paddingTop: 8,
-                paddingBottom: Math.max(insets.bottom, 8),
-            }}>
+        <View className="flex-row" style={{ paddingTop: PAD_TOP, paddingBottom: Math.max(insets.bottom, 8) }}>
+            {/* Bar background. The notch is filled with the screens' page colour so it reads as a cut-out,
+                and a soft shadow follows the whole top edge (including the notch) so the bar looks raised. */}
+            <Svg pointerEvents="none" width={width} height={svgH} style={{ position: "absolute", top: -SHADOW, left: 0 }}>
+                <Rect x={0} y={0} width={width} height={svgH} fill={colors["page-bg"]} />
+                <G transform={`translate(0 ${SHADOW})`}>
+                    {/* shadow strokes: the white fill drawn next hides their lower half */}
+                    <Path d={edge} stroke="#3A1B22" strokeOpacity={0.025} strokeWidth={12} fill="none" />
+                    <Path d={edge} stroke="#3A1B22" strokeOpacity={0.035} strokeWidth={6} fill="none" />
+                    <Path d={`${edge} L${width} ${notchH} L0 ${notchH} Z`} fill="#fff" />
+                    <Path d={edge} stroke={BAR_LINE} strokeWidth={1} fill="none" />
+                </G>
+            </Svg>
+            <View
+                pointerEvents="none"
+                style={{ position: "absolute", left: 0, right: 0, bottom: 0, top: notchH - 1, backgroundColor: "#fff" }}
+            />
+
             {tabs.map(({ def, route }) => {
                 const focused = route.name === focusedName;
                 const { options } = descriptors[route.key];
 
                 const onPress = () => {
-                    // The AI orb opens the Siri-style assistant over the current screen instead of switching tabs.
+                    // The center orb opens the assistant over the current screen instead of switching tabs.
                     if (def.center) {
                         showAssistant();
                         return;
@@ -80,7 +124,7 @@ export function AppTabBar({ state, descriptors, navigation, insets }: BottomTabB
                         accessibilityState={{ selected: focused }}
                         accessibilityLabel={options.tabBarAccessibilityLabel ?? t(`tabs.${def.labelKey}`)}
                         className="flex-1 items-center active:opacity-70">
-                        <View style={{ height: ICON, width: CENTER + CENTER_RING * 2, alignItems: "center" }}>
+                        <View style={{ height: ICON, width: ORB, alignItems: "center" }}>
                             {def.center ? (
                                 <CenterOrb />
                             ) : (
@@ -105,28 +149,27 @@ export function AppTabBar({ state, descriptors, navigation, insets }: BottomTabB
     );
 }
 
-/** Gradient AI orb in a thin white ring, lifted a little above the bar. */
-function CenterOrb() {
-    const outer = CENTER + CENTER_RING * 2;
+// ask-ai-warm-anim.webp: animated, 384 x 384, transparent; the glass disc spans ~93% of the
+// image and the rest is its own baked drop shadow, so the image is drawn larger than ORB.
+const ORB_ART = Math.round(ORB / 0.928);
 
+/** Glossy glass AI orb floating in the notch, centred on the bar's top edge. Ring and shadow are baked into the art. */
+function CenterOrb() {
     return (
         <View
             style={{
                 position: "absolute",
-                bottom: 0,
-                width: outer,
-                height: outer,
-                borderRadius: outer / 2,
-                backgroundColor: "#fff",
+                top: -(PAD_TOP + ORB / 2), // centre exactly on the bar edge = centre of the notch circle
+                width: ORB,
+                height: ORB,
                 alignItems: "center",
                 justifyContent: "center",
-                shadowColor: "#000",
-                shadowOpacity: 0.08,
-                shadowRadius: 6,
-                shadowOffset: { width: 0, height: 2 },
-                elevation: 3,
             }}>
-            <Image source={emIcons.navAiCircle} contentFit="contain" style={{ width: CENTER, height: CENTER }} />
+            <Image
+                source={require("@/assets/images/ask-ai-warm-anim.webp")}
+                contentFit="contain"
+                style={{ width: ORB_ART, height: ORB_ART }}
+            />
         </View>
     );
 }

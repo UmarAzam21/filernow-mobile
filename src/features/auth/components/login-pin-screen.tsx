@@ -1,12 +1,13 @@
 // nativeApp\src\features\auth\components\login-pin-screen.tsx
 
-import { FingerprintPattern, LockKeyhole, ScanFace, Smartphone } from "lucide-react-native";
+import { FingerprintPattern, ScanFace, Smartphone } from "lucide-react-native";
 import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Pressable, Text } from "react-native";
+import { Pressable, Text, View } from "react-native";
 
 import { useBiometric } from "@/features/biometric/hooks/use-biometric";
 import { apiErrorMessage } from "@/lib/api/errors";
+import { colors } from "@/theme/tokens";
 
 import { usePinEntry } from "../hooks/use-pin-entry";
 import { maskPhone } from "../lib/phone";
@@ -101,7 +102,6 @@ export default function LoginPinScreen({
 
   return (
     <PinScreenLayout
-      icon={LockKeyhole}
       title={t("pin.loginTitle")}
       subtitle={
         biometric.enabled
@@ -126,17 +126,23 @@ export default function LoginPinScreen({
         />
       }
     >
+      {/* White pill: phone icon, masked number and a pink "Change" label */}
       <Pressable
         onPress={onChangeNumber}
         accessibilityRole="button"
         accessibilityLabel={t("pin.changeNumberA11y")}
-        className="mt-4 flex-row items-center gap-2 rounded-full border border-[#F3D3D6] bg-white/85 py-2 pl-3 pr-3.5 active:opacity-80"
+        className="mt-5 flex-row items-center rounded-full border border-border-clr/70 bg-white py-1 pl-4 pr-1 shadow-md shadow-black/10 active:opacity-80"
       >
-        <Smartphone size={14} color="#D3222C" strokeWidth={2.2} />
-        <Text className="font-jakarta-bold text-[13px] text-[#151A23]" style={{ writingDirection: "ltr" }}>
+        <Smartphone size={14} color={colors.primary} strokeWidth={2.2} />
+        <Text
+          className="ml-2 mr-2.5 font-jakarta-semibold text-[14px] text-text-dark"
+          style={{ writingDirection: "ltr" }}
+        >
           {maskPhone(phone)}
         </Text>
-        <Text className="font-jakarta-bold text-[13px] text-[#D3222C]">{t("pin.changeNumber")}</Text>
+        <View className="px-3 py-1.5">
+          <Text className="font-jakarta-bold text-[13px] text-primary">{t("pin.changeNumber")}</Text>
+        </View>
       </Pressable>
 
       <PinDots
@@ -148,8 +154,8 @@ export default function LoginPinScreen({
         success={done ? t("pin.loggedIn") : null}
       />
 
-      <Pressable onPress={onForgotPin} accessibilityRole="button" hitSlop={10} className="mt-1 active:opacity-70">
-        <Text className="font-jakarta-bold text-sm text-[#D3222C]">{t("pin.forgot")}</Text>
+      <Pressable onPress={onForgotPin} accessibilityRole="button" hitSlop={10} className="mt-2 active:opacity-70">
+        <Text className="font-jakarta-bold text-[14px] text-primary">{t("pin.forgot")}</Text>
       </Pressable>
     </PinScreenLayout>
   );

@@ -1,6 +1,5 @@
 // nativeApp\src\features\auth\components\setup-pin-screen.tsx
 
-import { ShieldCheck } from "lucide-react-native";
 import { useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { View } from "react-native";
@@ -71,7 +70,6 @@ export default function SetupPinScreen({ phone, onBack, onComplete }: Props) {
 
   return (
     <PinScreenLayout
-      icon={ShieldCheck}
       title={step === "create" ? t("pin.createTitle") : t("pin.confirmTitle")}
       subtitle={
         step === "create"
@@ -81,8 +79,8 @@ export default function SetupPinScreen({ phone, onBack, onComplete }: Props) {
       onBack={step === "confirm" || onBack ? goBack : undefined}
       top={
         <View className="mb-5 flex-row gap-1.5">
-          <View className="h-1 w-8 rounded-full bg-[#D3222C]" />
-          <View className={`h-1 w-8 rounded-full ${step === "confirm" ? "bg-[#D3222C]" : "bg-[#D5D9E0]"}`} />
+          <View className="h-1 w-8 rounded-full bg-primary" />
+          <View className={`h-1 w-8 rounded-full ${step === "confirm" ? "bg-primary" : "bg-border-clr"}`} />
         </View>
       }
       keypad={<PinKeypad onKey={entry.press} onClear={entry.clear} disabled={loading || done} />}

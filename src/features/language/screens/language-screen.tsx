@@ -1,21 +1,28 @@
 // nativeApp\src\features\language\screens\language-screen.tsx
 
+import { Image } from "expo-image";
 import { useRouter } from "expo-router";
 import { StatusBar } from "expo-status-bar";
-import { SymbolView } from "expo-symbols";
+import { ArrowLeft } from "lucide-react-native";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { ActivityIndicator, Pressable, Text, View } from "react-native";
 import Animated, { FadeIn, FadeInDown } from "react-native-reanimated";
 import { SafeAreaView } from "react-native-safe-area-context";
-import Svg, { Defs, LinearGradient, Path, Rect, Stop } from "react-native-svg";
 
 import { LanguageHero } from "@/features/language/components/language-hero";
-import { LanguagePicker, PICKER_BLUE } from "@/features/language/components/language-picker";
+import { LanguagePicker } from "@/features/language/components/language-picker";
 import { switchLanguage } from "@/features/language/lib/switch-language";
 import { flipInRTL, needsDirectionChange } from "@/i18n/direction";
 import type { AppLanguage } from "@/i18n/languages";
 import { useAppStore } from "@/stores/app-store";
+import { colors } from "@/theme/tokens";
+
+// Same soft glows as the register / PIN screens, so onboarding reads as one flow
+const glow = {
+    pink: require("@/assets/images/register/glow-pink.png"),
+    lilac: require("@/assets/images/register/glow-lilac-strong.png"),
+} as const;
 
 /** Onboarding: pick the app language, then continue to the phone number screen. */
 export default function LanguageScreen() {
@@ -39,84 +46,72 @@ export default function LanguageScreen() {
     };
 
     return (
-        <View className="flex-1 bg-white">
-            <SkyGradient />
+        <View className="flex-1 bg-page-bg">
             <StatusBar style="dark" />
 
+            {/* soft pink glow top-left, lilac glow on the right */}
+            <View pointerEvents="none" style={{ position: "absolute", left: -70, top: -40, width: 380, height: 380 }}>
+                <Image source={glow.pink} contentFit="fill" style={{ width: 380, height: 380 }} />
+            </View>
+            <View pointerEvents="none" style={{ position: "absolute", right: -130, top: 150, width: 340, height: 340 }}>
+                <Image source={glow.lilac} contentFit="fill" style={{ width: 340, height: 340 }} />
+            </View>
+
             <SafeAreaView edges={["top", "bottom"]} className="flex-1 px-5">
-                {/* top row: back button left, globe art right. In the layout flow (not absolute) so the
-                    title always starts below the art and can't collide with it on any screen size */}
-                <View className="flex-row items-start justify-between pt-2">
+                {/* top row: back button left, globe right. In the layout flow so the title always starts below them */}
+                <View className="flex-row items-start justify-between pt-3">
                     {canGoBack ? (
                         <Pressable
                             accessibilityRole="button"
                             accessibilityLabel={t("common:actions.back")}
                             onPress={() => router.back()}
                             hitSlop={8}
-                            className="h-11 w-11 items-center justify-center rounded-full border border-white bg-white/50">
-                            <View style={flipInRTL}>
-                                <SymbolView
-                                    name={{ ios: "chevron.left", android: "arrow_back_ios_new", web: "arrow_back_ios_new" }}
-                                    tintColor="#2B2B2B"
-                                    size={16}
-                                />
-                            </View>
+                            className="h-11 w-11 items-center justify-center rounded-[14px] border-b-[3px] border-[#e6dfdc] bg-white shadow-md shadow-black/10 active:opacity-80">
+                            <ArrowLeft size={20} color={colors["text-dark"]} strokeWidth={2.2} style={flipInRTL} />
                         </Pressable>
                     ) : (
                         <View />
                     )}
-                    <Animated.View entering={FadeIn.duration(600)} pointerEvents="none" style={{ marginEnd: -8 }}>
-                        <LanguageHero width={170} />
+                    <Animated.View entering={FadeIn.duration(600)} pointerEvents="none" accessible={false}>
+                        <LanguageHero size={72} />
                     </Animated.View>
                 </View>
 
                 <Animated.View entering={FadeInDown.duration(400)} className="flex-1">
-                    <Text className="mt-3 font-jakarta-semibold text-[24px] leading-[32px] text-[#1F2937]">
+                    <Text
+                        accessibilityRole="header"
+                        maxFontSizeMultiplier={1.2}
+                        className="mt-3 font-jakarta-extrabold text-text-dark"
+                        style={{ fontSize: 29, lineHeight: 36, letterSpacing: -1 }}>
                         {t("picker.title")}
                     </Text>
-                    <Text className="mt-1.5 font-jakarta text-para-base text-[#6B7280]">{t("picker.subtitle")}</Text>
+                    <Text className="mt-2 font-jakarta text-[15px] leading-[21px] text-text-secondary-muted">
+                        {t("picker.subtitle")}
+                    </Text>
 
-                    <View className="mt-7 flex-1">
+                    <View className="mt-6 flex-1">
                         <LanguagePicker selectedCode={selectedCode} onSelect={setSelectedCode} />
                     </View>
                 </Animated.View>
 
+                {/* 3D red "key" button, same as the register screen: darker bottom edge, sinks when pressed */}
                 <Pressable
                     accessibilityRole="button"
                     accessibilityState={{ disabled: saving, busy: saving }}
                     disabled={saving}
                     onPress={onContinue}
-                    style={{ backgroundColor: PICKER_BLUE.accent, opacity: saving ? 0.7 : 1 }}
-                    className="mb-2 mt-4 h-14 items-center justify-center rounded-full active:opacity-80">
-                    <Text className="font-jakarta-medium text-[17px] text-white">{t("common:actions.continue")}</Text>
+                    style={({ pressed }) => ({ transform: [{ translateY: pressed ? 2 : 0 }] })}
+                    className="mb-2 mt-5 h-14 items-center justify-center overflow-hidden rounded-brand-12 border-b-4 border-primary-dark bg-primary shadow-lg shadow-primary/30">
+                    <View pointerEvents="none" className="absolute inset-x-4 top-[3px] h-px bg-white/40" />
+                    {saving ? (
+                        <ActivityIndicator color={colors.surface} />
+                    ) : (
+                        <Text className="font-jakarta-semibold text-heading-h5 text-surface">
+                            {t("common:actions.continue")}
+                        </Text>
+                    )}
                 </Pressable>
             </SafeAreaView>
-        </View>
-    );
-}
-
-/**
- * Sky blue (#7CC6FE) wash that fades to white about two-thirds down, plus a soft diagonal
- * sheen across the top-left corner, as in the mockup.
- */
-function SkyGradient() {
-    return (
-        <View pointerEvents="none" style={[StyleSheet.absoluteFill, { bottom: "30%" }]}>
-            <Svg width="100%" height="100%" viewBox="0 0 100 100" preserveAspectRatio="none">
-                <Defs>
-                    <LinearGradient id="langSky" x1="0" y1="0" x2="0" y2="1">
-                        <Stop offset="0" stopColor={PICKER_BLUE.sky} stopOpacity={0.6} />
-                        <Stop offset="0.55" stopColor={PICKER_BLUE.sky} stopOpacity={0.22} />
-                        <Stop offset="1" stopColor="#FFFFFF" stopOpacity={0} />
-                    </LinearGradient>
-                    <LinearGradient id="langSheen" x1="0" y1="0" x2="1" y2="0">
-                        <Stop offset="0" stopColor="#FFFFFF" stopOpacity={0.55} />
-                        <Stop offset="1" stopColor="#FFFFFF" stopOpacity={0} />
-                    </LinearGradient>
-                </Defs>
-                <Rect width="100" height="100" fill="url(#langSky)" />
-                <Path d="M0 0 H62 L0 22 Z" fill="url(#langSheen)" />
-            </Svg>
         </View>
     );
 }

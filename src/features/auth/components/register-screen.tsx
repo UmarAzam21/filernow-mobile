@@ -2,7 +2,7 @@
 
 import { Image } from "expo-image";
 import { StatusBar } from "expo-status-bar";
-import { Lock } from "lucide-react-native";
+import { Check, CircleAlert, Lock } from "lucide-react-native";
 import { useEffect, useState, type ReactNode } from "react";
 import { Trans, useTranslation } from "react-i18next";
 import {
@@ -16,37 +16,81 @@ import {
   ScrollView,
   Text,
   TextInput,
-  useWindowDimensions,
   View,
 } from "react-native";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { colors } from "../../../theme/tokens";
 import { apiErrorMessage } from "@/lib/api/errors";
+import { cn } from "@/lib/cn";
+import { colors } from "@/theme/tokens";
 
 import { formatPhone, isValidPhone } from "../lib/phone";
 import { nextStepFor } from "../lib/session";
 
-import MaskedView from "@react-native-masked-view/masked-view";
-import { LinearGradient } from "expo-linear-gradient";
+const WORD_LH = 56; // line-height of the big rotating word (48px extrabold)
+const WORD_H = WORD_LH + 4; // mask height for the rotating word
+const FONT_CAP = 1.1; // system font scaling cap for fixed-height lines
 
-const EXTRUDE = 3; // px depth of the rotating word
-const SHADOW_GAP = 4; // extra px below the extrusion for the soft contact shadow
-const DISPLAY_LH = 44; // = text-display line-height
-const WORD_H = DISPLAY_LH + EXTRUDE + SHADOW_GAP + 1; // mask height: extrusion + shadow always fit
-const WORD_GRADIENT = [colors["primary-glow"], colors.primary, colors["primary-dark"]] as const;
+// Soft gradient icons without a background (the filernow-soft-tiles SVGs with the grey tile removed)
+const tiles = {
+  wallet: require("@/assets/images/filernow-soft-icons/wallet.svg"),
+  coins: require("@/assets/images/filernow-soft-icons/savings.svg"),
+  chart: require("@/assets/images/filernow-soft-icons/growth-teal.svg"),
+  receipt: require("@/assets/images/filernow-soft-icons/accounts.svg"),
+} as const;
 
+// Pre-rendered 3D art (transparent PNGs) so the look is identical on every device:
+// RN has no radial gradients / layered shadows, these carry them.
+const art = {
+  glowPink: require("@/assets/images/register/glow-pink.png"), // 360 x 360
+  glowLilac: require("@/assets/images/register/glow-lilac-strong.png"), // 330 x 330
+  tile: require("@/assets/images/register/tile-raised.png"), // 62 tile + 34 padding on every side (edge + shadow)
+  badge: require("@/assets/images/register/logo-badge.png"), // 260 x 260: rings + raised white disc, no logo
+} as const;
+const TILE_PAD = 34; // padding baked into tile-raised.png, in px at TILE=62
 
-const HERO_PX = 24; // = px-6 on the hero; ribbons use it to bleed to the screen edge
-const RIBBON_RATIO = 344 / 654; // width / height of both ribbon PNGs
-const FONT_CAP = 1.1; // system font scaling cap for the hero (fixed-height masks can't grow)
+// 3D icon tiles orbiting the logo (positions inside a 270 x 200 cluster box)
+const CLUSTER_W = 270;
+const CLUSTER_H = 200;
+const BADGE = 252; // logo-badge.png drawn size (rings + white disc ~105pt wide)
+const TILE = 54; // raised white tile
+const ORBIT = [
+  { icon: tiles.wallet, left: 28, top: 23, rotate: "-8deg", amp: 5, dur: 2600 },
+  { icon: tiles.coins, left: 189, top: 19, rotate: "6deg", amp: 6, dur: 2900 },
+  { icon: tiles.chart, left: 42, top: 114, rotate: "-6deg", amp: 6, dur: 3100 },
+  { icon: tiles.receipt, left: 176, top: 112, rotate: "6deg", amp: 5, dur: 3400 },
+] as const;
+
+/** Slow idle bob that makes 3D objects feel like they float. Skipped when "reduce motion" is on. */
+function Float({ children, amplitude = 6, duration = 2600 }: { children: ReactNode; amplitude?: number; duration?: number }) {
+  const [y] = useState(() => new Animated.Value(0));
+  useEffect(() => {
+    let cancelled = false;
+    let loop: Animated.CompositeAnimation | undefined;
+    AccessibilityInfo.isReduceMotionEnabled().then((reduce) => {
+      if (reduce || cancelled) return;
+      loop = Animated.loop(
+        Animated.sequence([
+          Animated.timing(y, { toValue: -amplitude, duration, easing: Easing.inOut(Easing.sin), useNativeDriver: true }),
+          Animated.timing(y, { toValue: 0, duration, easing: Easing.inOut(Easing.sin), useNativeDriver: true }),
+        ]),
+      );
+      loop.start();
+    });
+    return () => {
+      cancelled = true;
+      loop?.stop();
+    };
+  }, [y, amplitude, duration]);
+  return <Animated.View style={{ transform: [{ translateY: y }] }}>{children}</Animated.View>;
+}
 
 /** Fade + slide-up entrance. Runs once when the screen appears. */
 function Reveal({
   children,
   delay = 0,
-  distance = 18,
-  duration = 650,
+  distance = 14,
+  duration = 550,
 }: {
   children: ReactNode;
   delay?: number;
@@ -75,126 +119,21 @@ function Reveal({
   );
 }
 
-/** Slow idle bob that makes 3D objects feel like they float. Skipped when "reduce motion" is on. */
-function Float({ children, amplitude = 6, duration = 2600 }: { children: ReactNode; amplitude?: number; duration?: number }) {
-  const [y] = useState(() => new Animated.Value(0));
-  useEffect(() => {
-    let cancelled = false;
-    let loop: Animated.CompositeAnimation | undefined;
-    AccessibilityInfo.isReduceMotionEnabled().then((reduce) => {
-      if (reduce || cancelled || amplitude === 0) return;
-      loop = Animated.loop(
-        Animated.sequence([
-          Animated.timing(y, { toValue: -amplitude, duration, easing: Easing.inOut(Easing.sin), useNativeDriver: true }),
-          Animated.timing(y, { toValue: 0, duration, easing: Easing.inOut(Easing.sin), useNativeDriver: true }),
-        ]),
-      );
-      loop.start();
-    });
-    return () => {
-      cancelled = true;
-      loop?.stop();
-    };
-  }, [y, amplitude, duration]);
-  return <Animated.View style={{ transform: [{ translateY: y }] }}>{children}</Animated.View>;
-}
-
-/** Glossy 3D ribbon PNG (cut off at its left edge). Size comes from the parent, never hardcoded. */
-function Ribbon({
-  source,
-  height,
-  opacity = 1,
-  mirror = false,
-  amplitude,
-  duration,
-  position,
-}: {
-  source: number;
-  height: number;
-  opacity?: number;
-  mirror?: boolean;
-  amplitude: number;
-  duration: number;
-  position: { top?: number; bottom?: number; left?: number; right?: number };
-}) {
-  return (
-    <View pointerEvents="none" style={{ position: "absolute", ...position }}>
-      <Reveal distance={24} duration={900}>
-        <Float amplitude={amplitude} duration={duration}>
-          <Image
-            source={source}
-            contentFit="contain"
-            style={{
-              width: Math.round(height * RIBBON_RATIO),
-              height,
-              opacity,
-              transform: [{ scaleX: mirror ? -1 : 1 }],
-            }}
-          />
-        </Float>
-      </Reveal>
-    </View>
-  );
-}
-
 /**
- * Extruded 3D text: stacked copies in the side colour sit under the face, the deepest one casts
- * the soft shadow. Only the face is exposed to screen readers.
- * Works on iOS + Android (RN allows a single textShadow per Text, so depth uses layers).
+ * Raised "key" tile (white, thick darker edge, glossy top, soft shadow) drawn from tile-raised.png,
+ * with the icon on top. The PNG has baked padding for the edge and shadow, so it bleeds outside the tile box.
  */
-const FIT = {
-  numberOfLines: 1,
-  adjustsFontSizeToFit: true,
-  minimumFontScale: 0.8,
-  maxFontSizeMultiplier: FONT_CAP,
-} as const;
-
-/** Stacked copies under the face create the extrusion; an optional offset copy is a crisp contact shadow (no blur, so nothing gets clipped). */
-function ExtrudeLayers({ text, className, side, depth, shadow }: { text: string; className: string; side: string; depth: number; shadow: boolean }) {
-  const hidden = { accessible: false, importantForAccessibility: "no-hide-descendants" } as const;
+function RaisedTile({ children, size = TILE }: { children: ReactNode; size?: number }) {
+  const pad = TILE_PAD * (size / 62);
+  const full = size + pad * 2;
   return (
-    <>
-      {shadow && (
-        <Text {...FIT} {...hidden} className={className}
-          style={{ position: "absolute", top: depth + SHADOW_GAP, left: 0, right: 0, color: colors["shadow-soft"] }}>
-          {text}
-        </Text>
-      )}
-      {Array.from({ length: depth }, (_, i) => depth - i).map((d) => (
-        <Text key={d} {...FIT} {...hidden} className={className}
-          style={{ position: "absolute", top: d, left: 0, right: 0, color: side }}>
-          {text}
-        </Text>
-      ))}
-    </>
-  );
-}
-
-/** Solid-colour 3D text (used for the main headline). */
-function Text3D({ text, className, face, side, depth = 2, shadow = false }: { text: string; className: string; face: string; side: string; depth?: number; shadow?: boolean }) {
-  return (
-    <View>
-      <ExtrudeLayers text={text} className={className} side={side} depth={depth} shadow={shadow} />
-      <Text {...FIT} className={className} style={{ color: face }}>{text}</Text>
-    </View>
-  );
-}
-
-/** Metallic gradient face + extrusion + contact shadow (used for the rotating word). */
-function GradientText3D({ text, className, gradient, side, depth = EXTRUDE }: { text: string; className: string; gradient: readonly [string, string, ...string[]]; side: string; depth?: number }) {
-  return (
-    <View accessible accessibilityLabel={text} style={{ height: DISPLAY_LH + depth + SHADOW_GAP }}>
-      <ExtrudeLayers text={text} className={className} side={side} depth={depth} shadow />
-      <MaskedView
-        style={{ height: DISPLAY_LH }}
-        maskElement={
-          <Text {...FIT} className={className} style={{ color: colors["text-dark"], backgroundColor: "transparent" }}>
-            {text}
-          </Text>
-        }
-      >
-        <LinearGradient colors={gradient} locations={[0, 0.55, 1]} style={{ flex: 1 }} />
-      </MaskedView>
+    <View style={{ width: size, height: size, alignItems: "center", justifyContent: "center" }}>
+      <Image
+        source={art.tile}
+        contentFit="fill"
+        style={{ position: "absolute", left: -pad, top: -pad, width: full, height: full }}
+      />
+      {children}
     </View>
   );
 }
@@ -205,30 +144,14 @@ export default function RegisterScreen({
   onContinue: (phone: string, next: "login" | "set_pin") => void;
 }) {
   const insets = useSafeAreaInsets();
-  const { width } = useWindowDimensions();
-  // Loads translations from 'auth' and 'common' namespaces
   const { t } = useTranslation(["auth", "common"]);
   const words = t("register.rotatingWords", { returnObjects: true });
-  const chips = t("register.chips", { returnObjects: true });
   const [phone, setPhone] = useState(""); // digits only, without 0 / +92
   const [focused, setFocused] = useState(false);
   const [touched, setTouched] = useState(false);
   const [loading, setLoading] = useState(false);
   const [requestError, setRequestError] = useState<string | null>(null);
-  const [zoneH, setZoneH] = useState(0); // measured height of the flexible hero zone
 
-  // Responsive sizing: everything derives from the real window width / measured zone
-  // const logoSize = Math.min(96, Math.round(width * 0.25));
-  // const logoSize = Math.min(70, Math.round(width * 0.25));
-  const logoSize = Math.min(100, Math.round(width * 0.19)); // Use 0.15 so it scales cleanly down to 40px
-  // const redH = Math.round(Math.max(150, Math.min(zoneH + logoSize * 0.8 - 10, (width * 0.46) / RIBBON_RATIO)));
-  // const pinkH = Math.round(Math.max(160, Math.min(zoneH + logoSize, (width * 0.56) / RIBBON_RATIO)));
-
-  // Adjust multipliers (0.38 and 0.45) to make ribbons taller or shorter
-  const redH = Math.round(Math.max(130, Math.min(zoneH + logoSize * 0.6, (width * 0.42) / RIBBON_RATIO)));
-  const pinkH = Math.round(Math.max(120, Math.min(zoneH * 0.95, (width * 0.38) / RIBBON_RATIO)));
-
-  // Animation state for the vertical word switcher
   // Rotating word: slides up out of a masked line, the next one slides up in
   const [wordIdx, setWordIdx] = useState(0);
   const [wordOpacity] = useState(() => new Animated.Value(1));
@@ -240,16 +163,13 @@ export default function RegisterScreen({
     let cancelled = false;
 
     const cycle = () => {
-      // 1. Slide current word up out of the masked box and fade it out
       Animated.parallel([
         Animated.timing(wordOpacity, { toValue: 0, duration: 280, easing: Easing.in(Easing.cubic), useNativeDriver: true }),
         Animated.timing(wordY, { toValue: -WORD_H, duration: 280, easing: Easing.in(Easing.cubic), useNativeDriver: true }),
       ]).start(({ finished }) => {
-        // 2. Advance to next word index and snap position below the visible mask
         if (!finished || cancelled) return;
         setWordIdx((i) => (i + 1) % wordCount);
         wordY.setValue(WORD_H);
-        // 3. Slide new word up into place and fade it in
         Animated.parallel([
           Animated.timing(wordOpacity, { toValue: 1, duration: 380, easing: Easing.out(Easing.cubic), useNativeDriver: true }),
           Animated.timing(wordY, { toValue: 0, duration: 380, easing: Easing.out(Easing.cubic), useNativeDriver: true }),
@@ -257,7 +177,6 @@ export default function RegisterScreen({
       });
     };
 
-    // Start 3.2-second rotation interval if motion is allowed and multiple words exist
     AccessibilityInfo.isReduceMotionEnabled().then((reduce) => {
       if (reduce || cancelled || wordCount < 2) return;
       timer = setInterval(cycle, 3200);
@@ -269,18 +188,15 @@ export default function RegisterScreen({
     };
   }, [wordOpacity, wordY, wordCount]);
 
-  // Sanitizes phone input: strips non-digits, removes leading zeros, limits to 10 digits
+  // keep digits only, drop a leading 0 (0300... -> 300...), max 10 digits
   const onChange = (text: string) => {
-    // keep digits only, drop a leading 0 (0300... -> 300...), max 10 digits
     setPhone(text.replace(/\D/g, "").replace(/^0+/, "").slice(0, 10));
     setRequestError(null);
   };
 
-  // Validates 10-digit Pakistani mobile format and checks when to show error text
   const valid = isValidPhone(phone);
   const showError = touched && phone.length > 0 && !valid;
 
-  // Submits phone number to check whether user needs login or registration PIN flow
   const handleContinue = async () => {
     setTouched(true);
     if (!valid || loading) return;
@@ -296,150 +212,147 @@ export default function RegisterScreen({
     }
   };
 
-  // every branch carries a shadow-* class (see the NativeWind remount note on the button)
-  // Dynamic input border/shadow styles (every branch keeps shadow-* to prevent NativeWind remounts)
-  const fieldClass =
-    showError || requestError
-      ? "border-danger bg-danger-bg/40 shadow-sm shadow-danger/10"
-      : focused
-        ? "border-primary bg-surface shadow-sm shadow-primary/20"
-        : "border-border-clr bg-card-bg-clr shadow-sm shadow-primary-deep/10";
+  // every branch carries a shadow-* class (see the NativeWind remount note on the button).
+  // fieldEdge = the thicker bottom edge (small "inset key" depth); its colour follows the state.
+  const hasError = !!(showError || requestError);
+  const active = !hasError && (focused || valid); // red outline + pink halo (focused, or a valid number)
+  const fieldClass = hasError
+    ? "border-danger bg-danger-bg/40 shadow-sm shadow-danger/10"
+    : active
+      ? "border-primary bg-white shadow-md shadow-primary/20"
+      : "border-border-clr bg-card-bg-clr shadow-sm shadow-transparent";
+  const fieldEdge = hasError ? colors.danger : active ? colors.primary : "#e6dfdc";
 
   return (
-    <View className="flex-1 bg-primary-tint">
-
-      {/* Dark status bar icons against the light tinted background */}
+    <View className="flex-1 bg-page-bg">
       <StatusBar style="dark" />
 
       <SafeAreaView className="flex-1" edges={["top"]}>
-        {/* Shifts content upward when iOS software keyboard opens */}
         <KeyboardAvoidingView className="flex-1" behavior={Platform.OS === "ios" ? "padding" : undefined}>
           <ScrollView
             className="flex-1"
-            contentContainerStyle={{ flexGrow: 1 }}
-            // Allows tapping Continue immediately without dismissing the keyboard first
+            contentContainerClassName="grow"
             keyboardShouldPersistTaps="handled"
             showsVerticalScrollIndicator={false}
             bounces={false}
           >
-            {/* Top Hero Container */}
-            {/* Hero = logo / flexible ribbon zone / text. The zone absorbs all height differences between devices. */}
-            <View className="flex-1 overflow-hidden px-6 pb-12 pt-4">
-              {/* Logo (above the ribbons) */}
-              <View style={{ zIndex: 2, alignSelf: "flex-start" }}>
-                <Reveal delay={0} distance={10}>
-                  <Float>
+            {/* ── Brand area: centred logo, badge, tagline. Takes all spare height so the form stays at the bottom. */}
+            <View className="flex-1 items-center justify-center overflow-hidden px-6 pb-12 pt-6">
+              {/* Soft colour glows behind the artwork */}
+              <View pointerEvents="none" style={{ position: "absolute", left: -60, top: -40, width: 360, height: 360 }}>
+                <Image source={art.glowPink} contentFit="fill" style={{ width: 360, height: 360 }} />
+              </View>
+              <View pointerEvents="none" style={{ position: "absolute", right: -90, top: 100, width: 330, height: 330 }}>
+                <Image source={art.glowLilac} contentFit="fill" style={{ width: 330, height: 330 }} />
+              </View>
+
+              {/* Logo with glow rings and floating 3D icon tiles around it */}
+              <Reveal delay={0} distance={10}>
+                <View style={{ width: CLUSTER_W, height: CLUSTER_H }} className="items-center justify-center">
+                  {/* Raised logo badge: rings + white disc come from logo-badge.png, the real logo sits on top */}
+                  <Float amplitude={4} duration={3000}>
                     <View
-                      className="items-center justify-center rounded-full bg-surface shadow-md shadow-primary/30"
-                      style={{ width: logoSize * 0.85, height: logoSize * 0.85 }}
+                      pointerEvents="none"
+                      style={{ width: BADGE, height: BADGE, alignItems: "center", justifyContent: "center", transform: [{ translateY: 4 }] }}
                     >
+                      <Image source={art.badge} contentFit="fill" style={{ position: "absolute", width: BADGE, height: BADGE }} />
                       <Image
-                        source={require("../../../../assets/images/khataPilot.png")}
+                        source={require("@/assets/images/FILERNOW.COM LOGO-01.svg")}
                         contentFit="contain"
-                        accessibilityLabel="Filernow Khata"
-                        style={{ width: logoSize * 0.85, height: logoSize * 0.85 }}
+                        accessibilityLabel="Filernow"
+                        style={{ width: 74, height: 74 }}
                       />
                     </View>
                   </Float>
-                </Reveal>
-              </View>
 
-              {/* Flexible zone: ribbons are sized from its measured height, so they can never reach the text */}
-              <View className="flex-1" style={{ minHeight: 90 }} onLayout={(e) => setZoneH(e.nativeEvent.layout.height)}>
-                {zoneH > 0 && (
-                  <>
-                    {/* Pink Ribbon pinned to Bottom Left */}
-                    <Ribbon
-                      source={require("../../../../assets/images/ribbon-soft.png")}
-                      height={pinkH}
-                      opacity={0.3}
-                      amplitude={5}
-                      duration={4200}
-                      // position={{ top: -(logoSize + 12), left: -HERO_PX }}
-                      position={{ bottom: -160, left: -HERO_PX }}
-                    />
-                    {/* Red Ribbon pinned to Top Right */}
-                    <Ribbon
-                      source={require("../../../../assets/images/ribbon-red.png")}
-                      height={redH}
-                      mirror
-                      amplitude={8}
-                      duration={3400}
-                      // position={{ top: -Math.round(logoSize * 0.8), right: -HERO_PX }}
-                      position={{ top: -Math.round(logoSize * 0.5), right: -HERO_PX }}
-                    />
-                  </>
-                )}
-              </View>
-
-              {/* Headline + chips (above the ribbons) */}
-              <View style={{ zIndex: 1 }}>
-                <Reveal delay={100}>
-                  <Text3D
-                    text={t("register.headline")}
-                    className="font-jakarta-bold text-display tracking-[-1px]"
-                    face={colors["text-dark"]}
-                    side={colors["text-secondary"]}
-                    depth={2}
-                  />
-                </Reveal>
-
-                {/* Masked container that clips the sliding 3D rotating words */}
-                <Reveal delay={260}>
-                  <View style={{ height: WORD_H, overflow: "hidden" }}>
-                    <Animated.View style={{ opacity: wordOpacity, transform: [{ translateY: wordY }] }}>
-                      <GradientText3D
-                        text={String(words[wordIdx])}
-                        className="font-jakarta-bold text-display tracking-[-1px]"
-                        gradient={WORD_GRADIENT}
-                        side={colors["primary-dark"]}
-                      />
-                    </Animated.View>
-                  </View>
-                </Reveal>
-
-                {/* Staggered 3D pill badges */}
-                {/* 3D chips: raised pill with a darker bottom edge and a soft shadow */}
-                <View className="mt-3 flex-row flex-wrap gap-2">
-                  {chips.map((c, i) => (
-                    <Reveal key={c} delay={620 + i * 120} distance={12} duration={500}>
-                      <View className="rounded-full border border-b-[3px] border-primary-lighter border-b-primary-light/55 bg-surface px-3.5 py-[7px] shadow-md shadow-primary-deep/10">
-                        <Text
-                          maxFontSizeMultiplier={FONT_CAP}
-                          className="font-jakarta-bold text-para-tiny text-text-secondary"
-                        >
-                          {c}
-                        </Text>
-                      </View>
-                    </Reveal>
+                  {/* Floating 3D icon tiles (decorative) */}
+                  {ORBIT.map((o, i) => (
+                    <View
+                      key={i}
+                      pointerEvents="none"
+                      accessible={false}
+                      importantForAccessibility="no-hide-descendants"
+                      style={{ position: "absolute", left: o.left, top: o.top, transform: [{ rotate: o.rotate }] }}
+                    >
+                      <Reveal delay={250 + i * 90} distance={10} duration={500}>
+                        <Float amplitude={o.amp} duration={o.dur}>
+                          <RaisedTile>
+                            <Image source={o.icon} contentFit="contain" style={{ width: 44, height: 44 }} />
+                          </RaisedTile>
+                        </Float>
+                      </Reveal>
+                    </View>
                   ))}
                 </View>
-              </View>
+              </Reveal>
+
+              {/* Tagline: "Your Khata, now digital." with the last words rotating */}
+              <Reveal delay={180}>
+                <View className="mt-[60px] items-center">
+                  {/* Small grey lead-in line */}
+                  <Text
+                    maxFontSizeMultiplier={FONT_CAP}
+                    accessibilityRole="header"
+                    className="text-center font-jakarta-medium text-text-secondary"
+                    style={{ fontSize: 28, lineHeight: 36, letterSpacing: -0.5 }}
+                  >
+                    {t("register.headline")}
+                  </Text>
+                  {/* Big black word, red full stop, pink highlighter stroke behind its lower half */}
+                  <View style={{ height: WORD_H, overflow: "hidden", justifyContent: "center", paddingHorizontal: 10 }}>
+                    <Animated.View style={{ opacity: wordOpacity, transform: [{ translateY: wordY }] }}>
+                      <View style={{ alignSelf: "center" }}>
+                        <View
+                          pointerEvents="none"
+                          className="absolute rounded-full bg-primary/20"
+                          style={{ left: -8, right: -8, bottom: 6, height: 14 }}
+                        />
+                        <Text
+                          maxFontSizeMultiplier={FONT_CAP}
+                          numberOfLines={1}
+                          className="text-center font-jakarta-extrabold text-text-dark"
+                          style={{ fontSize: 48, lineHeight: WORD_LH, letterSpacing: -2 }}
+                        >
+                          {String(words[wordIdx]).replace(/[.۔]$/, "")}
+                          <Text className="text-primary">{/[.۔]$/.exec(String(words[wordIdx]))?.[0] ?? ""}</Text>
+                        </Text>
+                      </View>
+                    </Animated.View>
+                  </View>
+                </View>
+              </Reveal>
             </View>
 
-            {/* Bottom Form Sheet (-mt-6 overlaps the hero section for depth by 24px) */}
+            {/* ── Form sheet: one clear task, enter your mobile number. */}
             <View
-              className="-mt-6 rounded-t-brand-32 bg-surface px-6 pt-7 shadow-2xl shadow-primary-deep/20"
-              style={{ paddingBottom: Math.max(insets.bottom, 12) + 16 }}
+              className="rounded-t-brand-24 border border-b-0 border-border-clr/65 bg-white px-6 pt-7 shadow-xl shadow-primary-deep/10"
+              style={{ paddingBottom: Math.max(insets.bottom, 12) + 12 }}
             >
-              <Text className="font-jakarta-bold text-heading-h3 tracking-[-0.5px] text-text-dark">
-                {t("register.title")}
-              </Text>
-              <Text className="mt-1.5 font-jakarta-medium text-para-base text-text-secondary-muted">
-                {t("register.subtitle")}
-              </Text>
+              {/* grab handle */}
+              <View pointerEvents="none" className="absolute inset-x-0 top-2.5 items-center">
+                <View className="h-1 w-10 rounded-full bg-border-clr" />
+              </View>
 
-              {/* Phone field */}
-              <Text className="mb-2 mt-6 font-jakarta-bold text-para-small text-text-dark">
+              <Text className="font-jakarta-bold text-heading-h3 text-text-dark">{t("register.title")}</Text>
+              <Text className="mt-1 font-jakarta text-para-base text-text-secondary-muted">{t("register.subtitle")}</Text>
+
+              <Text className="mb-2 mt-6 font-jakarta-medium text-para-small text-text-secondary">
                 {t("register.phoneLabel")}
               </Text>
+
+              {/* Pink halo ring around the active field (negative margin keeps the layout identical) */}
+              <View
+                className="rounded-[15px] p-[3px]"
+                style={{ margin: -3, backgroundColor: active ? "rgba(200, 16, 46, 0.10)" : "transparent" }}
+              >
               {/* Forces LTR layout so +92 stays on the left even when app language is Urdu */}
               <View
-                className={`h-14 flex-row items-center rounded-brand-16 border-[1.5px] px-4 ${fieldClass}`}
-                style={{ direction: "ltr" }}
+                className={`h-14 flex-row items-center rounded-brand-12 border px-4 ${fieldClass}`}
+                style={{ direction: "ltr", borderBottomWidth: active ? 1.5 : 3, borderWidth: active ? 1.5 : 1, borderBottomColor: fieldEdge }}
               >
-                <Text className="font-jakarta-bold text-heading-h5 text-text-dark">+92</Text>
-                <View className="mx-3 h-6 w-px bg-border-clr" />
+                <Text className="mr-1.5 text-heading-h5" accessible={false}>🇵🇰</Text>
+                <Text className="font-jakarta-semibold text-heading-h5 text-text-dark">+92</Text>
+                <View className="mx-3 h-6 w-px bg-border-strong" />
                 <TextInput
                   className="h-full flex-1 py-0 font-jakarta-medium text-heading-h5 text-text-dark"
                   value={formatPhone(phone)}
@@ -458,62 +371,70 @@ export default function RegisterScreen({
                   selectionColor={colors.primary}
                   accessibilityLabel={t("register.phoneLabel")}
                 />
+                {valid && !requestError && (
+                  <View
+                    className="h-6 w-6 items-center justify-center rounded-full shadow-sm shadow-success/40"
+                    style={{ backgroundColor: colors.success }}
+                  >
+                    <Check size={14} color="#fff" strokeWidth={3} />
+                  </View>
+                )}
+              </View>
               </View>
 
-              {/* Conditional Validation Error, Network Error, or Privacy Note */}
-              {showError ? (
-                <Text className="mt-3 font-jakarta-medium text-para-small text-danger">
-                  {t("register.invalidPhone")}
-                </Text>
-              ) : requestError ? (
-                <Text className="mt-3 font-jakarta-medium text-para-small text-danger">{requestError}</Text>
-              ) : (
-                <View className="mt-3 flex-row items-center gap-1.5">
-                  <Lock size={13} color={colors["text-secondary-muter"]} strokeWidth={2} />
-                  <Text className="font-jakarta-medium text-para-small text-text-secondary-muted">
-                    {t("register.privacyNote")}
+              {/* Validation error, network error, or privacy note */}
+              {showError || requestError ? (
+                <View className="mt-2.5 flex-row items-start gap-1.5" accessibilityLiveRegion="polite">
+                  <View className="mt-0.5">
+                    <CircleAlert size={14} color={colors.danger} strokeWidth={2.25} />
+                  </View>
+                  <Text className="flex-1 font-jakarta-medium text-para-small text-danger">
+                    {showError ? t("register.invalidPhone") : requestError}
                   </Text>
+                </View>
+              ) : (
+                <View className="mt-2.5 flex-row items-center gap-1.5">
+                  <Lock size={13} color={colors["text-secondary-muter"]} strokeWidth={2} />
+                  <Text className="font-jakarta text-para-small text-text-secondary-muted">{t("register.privacyNote")}</Text>
                 </View>
               )}
 
-              {/* Continue: 3D "key" button (darker bottom edge, sinks 2px when pressed) */}
               <Pressable
                 onPress={handleContinue}
                 disabled={!valid || loading}
                 accessibilityRole="button"
                 accessibilityState={{ busy: loading, disabled: !valid || loading }}
-                style={({ pressed }) => ({
-                  opacity: pressed ? 0.95 : 1,
-                  transform: [{ translateY: pressed ? 2 : 0 }],
-                })}
+                // 3D "key": darker bottom edge, sinks 2px when pressed
+                style={({ pressed }) => ({ transform: [{ translateY: pressed && valid ? 2 : 0 }] })}
                 // shadow-* sets CSS variables: keep it on both states so NativeWind doesn't
                 // "upgrade" (remount) the Pressable after the first render, which crashes on native
-                className={`mt-5 h-14 items-center justify-center overflow-hidden rounded-full border-b-4 shadow-lg ${valid
-                  ? "border-primary-dark bg-primary shadow-primary/30"
-                  : "border-primary/40 bg-primary/40 shadow-transparent"
-                  }`}
+                className={cn(
+                  "mt-7 h-14 items-center justify-center overflow-hidden rounded-brand-12 border-b-4 shadow-lg",
+                  valid ? "border-primary-dark bg-primary shadow-primary/30" : "border-border-clr bg-surface-muted shadow-transparent"
+                )}
               >
-                {/* Top specular highlight line when button is enabled */}
-                {valid && <View pointerEvents="none" className="absolute inset-x-5 top-[3px] h-px bg-surface/40" />}
+                {/* Glossy top highlight when enabled */}
+                {valid && <View pointerEvents="none" className="absolute inset-x-4 top-[3px] h-px bg-white/40" />}
                 {loading ? (
                   <ActivityIndicator color={colors.surface} />
                 ) : (
-                  <Text className="font-jakarta-bold text-heading-h5 text-surface">{t("common:actions.continue")}</Text>
+                  <Text className={cn("font-jakarta-semibold text-heading-h5", valid ? "text-surface" : "text-text-secondary-muter")}>
+                    {t("common:actions.continue")}
+                  </Text>
                 )}
               </Pressable>
 
-              {/* Terms & Privacy Footer with bolded highlights via <Trans> */}
-              <Text className="mt-4 text-center font-jakarta-medium text-para-micro text-text-secondary-muted">
+              <Text className="mt-4 px-2 text-center font-jakarta text-para-tiny text-text-secondary-muted">
                 <Trans
                   t={t}
                   i18nKey="register.terms"
-                  components={{ bold: <Text className="font-jakarta-bold text-text-dark" /> }}
+                  components={{ bold: <Text className="font-jakarta-semibold text-text-dark" /> }}
                 />
               </Text>
             </View>
           </ScrollView>
         </KeyboardAvoidingView>
       </SafeAreaView>
-    </View >
+    </View>
   );
 }
