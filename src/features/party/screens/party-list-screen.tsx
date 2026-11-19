@@ -17,6 +17,7 @@ import {
     type PartyType,
 } from "@/features/khata/types";
 import { BalanceOverview } from "@/features/party/components/balance-overview";
+import { DataModeBar } from "@/features/khata/components/data-mode-bar";
 import { BulkPartySheet } from "@/features/party/components/bulk-party-sheet";
 import { type BalanceFilter, PartyFilterSheet, type SortBy } from "@/features/party/components/party-filter-sheet";
 import { PartyFormSheet } from "@/features/party/components/party-form-sheet";
@@ -155,6 +156,7 @@ export default function PartyListScreen() {
                 }}
             />
 
+            <DataModeBar />
             <View className="flex-row gap-2 px-4 pt-3">
                 {TABS.map((key) => (
                     <Pressable

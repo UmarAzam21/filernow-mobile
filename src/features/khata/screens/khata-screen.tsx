@@ -5,6 +5,7 @@ import { SymbolView, type SymbolViewProps } from "expo-symbols";
 import { useTranslation } from "react-i18next";
 import { Pressable, ScrollView, Text, View } from "react-native";
 
+import { DataModeBar } from "@/features/khata/components/data-mode-bar";
 import { KhataSyncBar } from "@/features/khata/components/khata-sync-bar";
 
 import { colors } from "@/theme/tokens";
@@ -40,6 +41,7 @@ export default function KhataCardScreen() {
     return (
         <ScrollView className="flex-1 bg-page-bg">
             <KhataSyncBar />
+            <DataModeBar />
             <View className="flex-row flex-wrap gap-3 p-4">
                 {SECTIONS.map((s) => (
                     <Link key={s.key} href={s.href} asChild>

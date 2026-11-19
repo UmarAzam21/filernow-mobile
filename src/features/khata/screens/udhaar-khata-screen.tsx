@@ -9,6 +9,7 @@ import { Alert, FlatList, Pressable, Text, View } from "react-native";
 import { Input } from "@/components/ui/form";
 import { OptionSheet } from "@/components/ui/option-sheet";
 import { useActiveBusiness } from "@/features/business/store/business-store";
+import { DataModeBar } from "@/features/khata/components/data-mode-bar";
 import { ExportFlow } from "@/features/khata/components/export-flow";
 import { PaginationBar } from "@/features/khata/components/pagination-bar";
 import { StatCard } from "@/features/khata/components/stat-card";
@@ -165,6 +166,7 @@ export default function UdhaarKhataScreen() {
                 contentContainerStyle={{ paddingBottom: 104 }} // room for the sticky action bar
                 ListHeaderComponent={
                     <View>
+                        <DataModeBar />
                         <View className="flex-row flex-wrap gap-3 px-4 pt-4">
                             {stats.map((item) => (
                                 // no real month-over-month number here, so no trend chip

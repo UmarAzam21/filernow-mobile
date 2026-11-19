@@ -8,7 +8,9 @@ import { useAuthStore } from "@/features/auth/store/auth-store";
 import { DEFAULT_BUSINESS_ID } from "@/features/business/data/business-options";
 import { useBusinessStore } from "@/features/business/store/business-store";
 import { expensesApi } from "@/features/khata/api/expenses-api";
+import { dummyCards } from "@/features/khata/data/dummy-cards";
 import { defaultCategories } from "@/features/khata/data/default-categories";
+import { dummyExpenseEntries, dummyParties } from "@/features/khata/data/dummy-entries";
 import {
     CARD_COLOR,
     type CardMeta,
@@ -47,11 +49,22 @@ import { toast } from "@/lib/toast";
 export type LocalData = { entries: IExpenseEntry[]; parties: IParty[] };
 /** Server data of ONE business (last successful sync). */
 export type RemoteData = { entries: IExpenseEntry[]; cards: ICard[]; categories: ICategory[]; syncedAt: string | null };
+export type DataMode = "demo" | "blank";
+export type DemoBusinessData = { entries: IExpenseEntry[]; parties: IParty[]; cards: ICard[]; categories: ICategory[] };
 
 export const EMPTY_LOCAL: LocalData = { entries: [], parties: [] };
 export const EMPTY_REMOTE: RemoteData = { entries: [], cards: [], categories: [], syncedAt: null };
+export const EMPTY_DEMO_DATA: DemoBusinessData = { entries: [], parties: [], cards: [], categories: [] };
 
 const DEBT_CATEGORIES = defaultCategories.filter((c) => c.kind === "debt");
+const cardDelta = (entry: Pick<IExpenseEntry, "kind" | "amount">) =>
+    entry.kind === "income" ? entry.amount : entry.kind === "expense" ? -entry.amount : 0;
+const createDemoData = (): DemoBusinessData => ({
+    entries: dummyExpenseEntries.map((entry) => ({ ...entry })),
+    parties: dummyParties.map((party) => ({ ...party })),
+    cards: dummyCards.map((card) => ({ ...card })),
+    categories: defaultCategories.map((category) => ({ ...category })),
+});
 
 type NewEntry = Omit<IExpenseEntry, "id">;
 
@@ -64,11 +77,16 @@ type KhataState = {
     remote: Record<string, RemoteData>;
     /** Card expiry/colour the server doesn't store, kept for cards added on this phone. */
     cardMeta: Record<string, CardMeta>;
+    /** Editable, per-business local demo copy; never sent to the live account API. */
+    demoData: Record<string, DemoBusinessData>;
+    dataMode: Record<string, DataMode>;
     syncing: boolean;
     syncError: string | null;
 
     /** Reloads the active business's entries, cards and categories from the server. */
     sync: () => Promise<void>;
+    loadDemoData: () => void;
+    resetToBlank: () => void;
     /** Moves a business's phone-only data to a new id (pre-backend "my-expenses" → server id). */
     adoptBusinessData: (fromId: string, toId: string) => void;
 
@@ -90,7 +108,7 @@ type KhataState = {
     transferBetweenCards: (fromId: string, toId: string, amount: number) => Promise<boolean>;
 };
 
-type Persisted = Pick<KhataState, "categories" | "data" | "remote" | "cardMeta">;
+type Persisted = Pick<KhataState, "categories" | "data" | "remote" | "cardMeta" | "demoData" | "dataMode">;
 
 const money = (n: number) => `PKR ${n.toLocaleString("en-PK")}`;
 // store messages follow the app language
@@ -104,6 +122,15 @@ export const useKhataStore = create<KhataState>()(
         (set, get) => {
             const local = (): LocalData => get().data[activeId()] ?? EMPTY_LOCAL;
             const remote = (): RemoteData => get().remote[activeId()] ?? EMPTY_REMOTE;
+            const demo = (): DemoBusinessData => get().demoData[activeId()] ?? EMPTY_DEMO_DATA;
+            const isDemoMode = () => get().dataMode[activeId()] === "demo";
+            const updateDemo = (patch: (d: DemoBusinessData) => Partial<DemoBusinessData>) => {
+                const id = activeId();
+                set((s) => {
+                    const cur = s.demoData[id] ?? EMPTY_DEMO_DATA;
+                    return { demoData: { ...s.demoData, [id]: { ...cur, ...patch(cur) } } };
+                });
+            };
             const updateLocal = (patch: (d: LocalData) => Partial<LocalData>) => {
                 const id = activeId();
                 set((s) => {
@@ -129,6 +156,8 @@ export const useKhataStore = create<KhataState>()(
                 data: {},
                 remote: {},
                 cardMeta: {},
+                demoData: {},
+                dataMode: {},
                 syncing: false,
                 syncError: null,
 
@@ -163,6 +192,28 @@ export const useKhataStore = create<KhataState>()(
                     }
                 },
 
+                loadDemoData: () => {
+                    const id = activeId();
+                    set((s) => ({
+                        demoData: { ...s.demoData, [id]: createDemoData() },
+                        dataMode: { ...s.dataMode, [id]: "demo" },
+                    }));
+                    toast.success(t("demoLoaded"));
+                },
+
+                resetToBlank: () => {
+                    set((s) => {
+                        const id = activeId();
+                        const demoData = { ...s.demoData };
+                        delete demoData[id];
+                        return {
+                            dataMode: { ...s.dataMode, [id]: "blank" },
+                            demoData,
+                        };
+                    });
+                    toast.success(t("cleared"));
+                },
+
                 adoptBusinessData: (fromId, toId) =>
                     set((s) => {
                         const from = s.data[fromId];
@@ -172,6 +223,22 @@ export const useKhataStore = create<KhataState>()(
                     }),
 
                 addEntry: async (entry) => {
+                    if (isDemoMode()) {
+                        if (entry.kind === "expense" && !entry.cardId) {
+                            toast.error(t("cardRequired"));
+                            return false;
+                        }
+                        const clean = entry.kind === "debt" ? { ...entry, cardId: undefined } : entry;
+                        const created = { ...clean, id: newId(), createdAt: new Date().toISOString() };
+                        updateDemo((d) => ({
+                            entries: [created, ...d.entries],
+                            cards: d.cards.map((card) =>
+                                card.id === clean.cardId ? { ...card, balance: card.balance + cardDelta(clean) } : card,
+                            ),
+                        }));
+                        toast.success(t("saved", { name: entry.subject }));
+                        return true;
+                    }
                     if (entry.kind === "debt") {
                         // Udhaar lives in the party ledger on this phone
                         const clean = { ...entry, cardId: undefined };
@@ -203,6 +270,24 @@ export const useKhataStore = create<KhataState>()(
                 },
 
                 updateEntry: (id, patch) => {
+                    if (isDemoMode()) {
+                        const old = demo().entries.find((e) => e.id === id);
+                        if (!old) return false;
+                        const updated = { ...old, ...patch };
+                        const deltas: Record<string, number> = {};
+                        if (old.cardId && old.kind !== "debt") deltas[old.cardId] = (deltas[old.cardId] ?? 0) - cardDelta(old);
+                        if (updated.cardId && updated.kind !== "debt") {
+                            deltas[updated.cardId] = (deltas[updated.cardId] ?? 0) + cardDelta(updated);
+                        }
+                        updateDemo((d) => ({
+                            entries: d.entries.map((e) => (e.id === id ? updated : e)),
+                            cards: d.cards.map((card) =>
+                                deltas[card.id] ? { ...card, balance: card.balance + deltas[card.id] } : card,
+                            ),
+                        }));
+                        toast.success(t("updated", { name: updated.subject }));
+                        return true;
+                    }
                     if (id.startsWith(SERVER_ENTRY_PREFIX)) {
                         toast.error(t("notEditable"));
                         return false;
@@ -216,6 +301,20 @@ export const useKhataStore = create<KhataState>()(
                 },
 
                 deleteEntry: (id) => {
+                    if (isDemoMode()) {
+                        const target = demo().entries.find((e) => e.id === id);
+                        if (!target) return false;
+                        updateDemo((d) => ({
+                            entries: d.entries.filter((e) => e.id !== id),
+                            cards: d.cards.map((card) =>
+                                target.cardId && target.kind !== "debt" && card.id === target.cardId
+                                    ? { ...card, balance: card.balance - cardDelta(target) }
+                                    : card,
+                            ),
+                        }));
+                        toast.success(t("deleted", { name: target.subject }));
+                        return true;
+                    }
                     if (id.startsWith(SERVER_ENTRY_PREFIX)) {
                         toast.error(t("notDeletable"));
                         return false;
@@ -229,7 +328,8 @@ export const useKhataStore = create<KhataState>()(
 
                 addParty: (p) => {
                     const party: IParty = { ...p, id: newId(), slug: makeSlug(p.name), createdAt: new Date().toISOString() };
-                    updateLocal((d) => ({ parties: [party, ...d.parties] }));
+                    if (isDemoMode()) updateDemo((d) => ({ parties: [party, ...d.parties] }));
+                    else updateLocal((d) => ({ parties: [party, ...d.parties] }));
                     toast.success(t("partyAdded", { name: party.name }));
                     return party;
                 },
@@ -237,24 +337,38 @@ export const useKhataStore = create<KhataState>()(
                 addParties: (list) => {
                     const now = new Date().toISOString();
                     const created: IParty[] = list.map((p) => ({ ...p, id: newId(), slug: makeSlug(p.name), createdAt: now }));
-                    updateLocal((d) => ({ parties: [...created, ...d.parties] }));
+                    if (isDemoMode()) updateDemo((d) => ({ parties: [...created, ...d.parties] }));
+                    else updateLocal((d) => ({ parties: [...created, ...d.parties] }));
                     toast.success(t("partiesAdded", { count: created.length }));
                     return created.length;
                 },
 
-                updateParty: (id, patch) =>
-                    updateLocal((d) => ({ parties: d.parties.map((p) => (p.id === id ? { ...p, ...patch } : p)) })),
+                updateParty: (id, patch) => {
+                    if (isDemoMode()) {
+                        updateDemo((d) => ({ parties: d.parties.map((p) => (p.id === id ? { ...p, ...patch } : p)) }));
+                    } else {
+                        updateLocal((d) => ({ parties: d.parties.map((p) => (p.id === id ? { ...p, ...patch } : p)) }));
+                    }
+                },
 
                 deleteParty: (id, withEntries = false) => {
-                    const linked = local().entries.filter((e) => e.partyId === id);
+                    const entries = isDemoMode() ? demo().entries : local().entries;
+                    const linked = entries.filter((e) => e.partyId === id);
                     if (linked.length && !withEntries) {
                         toast.error(t("partyHasEntries"));
                         return false;
                     }
-                    updateLocal((d) => ({
-                        entries: d.entries.filter((e) => e.partyId !== id),
-                        parties: d.parties.filter((p) => p.id !== id),
-                    }));
+                    if (isDemoMode()) {
+                        updateDemo((d) => ({
+                            entries: d.entries.filter((e) => e.partyId !== id),
+                            parties: d.parties.filter((p) => p.id !== id),
+                        }));
+                    } else {
+                        updateLocal((d) => ({
+                            entries: d.entries.filter((e) => e.partyId !== id),
+                            parties: d.parties.filter((p) => p.id !== id),
+                        }));
+                    }
                     toast.success(
                         linked.length ? t("partyDeletedWithEntries", { count: linked.length }) : t("partyDeleted"),
                     );
@@ -267,9 +381,17 @@ export const useKhataStore = create<KhataState>()(
                         toast.error(t("debtCategoryLocked"));
                         return false;
                     }
-                    if (get().categories.some((c) => c.kind === kind && c.label.toLowerCase() === clean.toLowerCase())) {
+                    const categories = isDemoMode() ? demo().categories : get().categories;
+                    if (categories.some((c) => c.kind === kind && c.label.toLowerCase() === clean.toLowerCase())) {
                         toast.error(t("categoryExists", { name: clean }));
                         return false;
+                    }
+                    if (isDemoMode()) {
+                        updateDemo((d) => ({
+                            categories: [...d.categories, { id: newId(), label: clean, color, kind }],
+                        }));
+                        toast.success(t("categoryAdded", { name: clean }));
+                        return true;
                     }
                     return write(
                         () => expensesApi.createCategory({ name: clean, type: apiTypeOf(kind), color: categoryHex(color) }),
@@ -278,7 +400,8 @@ export const useKhataStore = create<KhataState>()(
                 },
 
                 deleteCategory: async (id) => {
-                    const target = get().categories.find((c) => c.id === id);
+                    const categories = isDemoMode() ? demo().categories : get().categories;
+                    const target = categories.find((c) => c.id === id);
                     if (!target) return false;
                     if (target.kind === "debt") {
                         toast.error(t("debtCategoryLocked"));
@@ -288,6 +411,19 @@ export const useKhataStore = create<KhataState>()(
                         toast.error(t("otherCategoryLocked"));
                         return false;
                     }
+                    if (isDemoMode()) {
+                        const fallback = categories.find((c) => c.kind === target.kind && c.label === "Other" && c.id !== id);
+                        if (!fallback) {
+                            toast.error(t("otherCategoryLocked"));
+                            return false;
+                        }
+                        updateDemo((d) => ({
+                            categories: d.categories.filter((c) => c.id !== id),
+                            entries: d.entries.map((e) => (e.categoryId === id ? { ...e, categoryId: fallback.id } : e)),
+                        }));
+                        toast.success(t("categoryRemoved", { name: target.label }));
+                        return true;
+                    }
                     if (id.startsWith("name:")) {
                         // only a name on old entries; nothing to delete on the server
                         return false;
@@ -296,9 +432,14 @@ export const useKhataStore = create<KhataState>()(
                 },
 
                 addCard: async (card) => {
-                    if (remote().cards.length >= MAX_CARDS) {
+                    if ((isDemoMode() ? demo().cards : remote().cards).length >= MAX_CARDS) {
                         toast.error(t("maxCards", { count: MAX_CARDS }));
                         return false;
+                    }
+                    if (isDemoMode()) {
+                        updateDemo((d) => ({ cards: [...d.cards, { ...card, id: newId() }] }));
+                        toast.success(t("cardAdded", { name: card.label }));
+                        return true;
                     }
                     let createdId: number | null = null;
                     const ok = await write(async () => {
@@ -327,6 +468,13 @@ export const useKhataStore = create<KhataState>()(
                 },
 
                 updateCard: async (id, patch) => {
+                    if (isDemoMode()) {
+                        const card = demo().cards.find((c) => c.id === id);
+                        if (!card) return false;
+                        updateDemo((d) => ({ cards: d.cards.map((c) => (c.id === id ? { ...c, ...patch } : c)) }));
+                        toast.success(t("cardUpdated"));
+                        return true;
+                    }
                     const card = remote().cards.find((c) => c.id === id);
                     if (!card) return false;
                     if ((patch.label !== undefined && patch.label !== card.label) || (patch.last4 !== undefined && patch.last4 !== card.last4)) {
@@ -361,7 +509,7 @@ export const useKhataStore = create<KhataState>()(
                 },
 
                 transferBetweenCards: async (fromId, toId, amount) => {
-                    const { cards } = remote();
+                    const cards = isDemoMode() ? demo().cards : remote().cards;
                     const from = cards.find((c) => c.id === fromId);
                     const to = cards.find((c) => c.id === toId);
                     if (!from || !to || fromId === toId || amount <= 0) {
@@ -372,6 +520,17 @@ export const useKhataStore = create<KhataState>()(
                         toast.error(t("notEnoughBalance", { name: from.label }));
                         return false;
                     }
+                    if (isDemoMode()) {
+                        updateDemo((d) => ({
+                            cards: d.cards.map((card) =>
+                                card.id === fromId ? { ...card, balance: card.balance - amount }
+                                    : card.id === toId ? { ...card, balance: card.balance + amount }
+                                        : card,
+                            ),
+                        }));
+                        toast.success(t("transferred", { amount: money(amount), from: from.label, to: to.label }));
+                        return true;
+                    }
                     return write(
                         () => expensesApi.transfer(Number(fromId), Number(toId), amount),
                         t("transferred", { amount: money(amount), from: from.label, to: to.label }),
@@ -381,9 +540,16 @@ export const useKhataStore = create<KhataState>()(
         },
         {
             name: "filernow-khata",
-            version: 3,
+            version: 4,
             storage: createJSONStorage(() => AsyncStorage),
-            partialize: (s): Persisted => ({ categories: s.categories, data: s.data, remote: s.remote, cardMeta: s.cardMeta }),
+            partialize: (s): Persisted => ({
+                categories: s.categories,
+                data: s.data,
+                remote: s.remote,
+                cardMeta: s.cardMeta,
+                demoData: s.demoData,
+                dataMode: s.dataMode,
+            }),
             migrate: (persisted, version): Persisted => {
                 let state = persisted as Record<string, unknown>;
                 // v1 kept one global list; v2 moved it into the default business
@@ -407,11 +573,20 @@ export const useKhataStore = create<KhataState>()(
                         ),
                     };
                 }
+                const dataMode = (state.dataMode as Persisted["dataMode"]) ?? {};
+                const demoData = { ...((state.demoData as Persisted["demoData"]) ?? {}) };
+                if (version < 4) {
+                    for (const [id, mode] of Object.entries(dataMode)) {
+                        if (mode === "demo" && !demoData[id]) demoData[id] = createDemoData();
+                    }
+                }
                 return {
                     categories: (state.categories as ICategory[]) ?? [...DEBT_CATEGORIES],
                     data: (state.data as Persisted["data"]) ?? {},
                     remote: (state.remote as Persisted["remote"]) ?? {},
                     cardMeta: (state.cardMeta as Persisted["cardMeta"]) ?? {},
+                    demoData,
+                    dataMode,
                 };
             },
         },
