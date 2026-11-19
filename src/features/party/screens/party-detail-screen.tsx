@@ -8,6 +8,7 @@ import { Alert, FlatList, Pressable, Text, View } from "react-native";
 
 import { Input } from "@/components/ui/form";
 import { PlaceholderScreen } from "@/components/ui/placeholder-screen";
+import { DataModeBar } from "@/features/khata/components/data-mode-bar";
 import { buildLedger, debtLabel, partyTypeLabel } from "@/features/khata/lib/debt";
 import { useKhataStore } from "@/features/khata/store/khata-store";
 import { DEBT_TYPE_META, type IExpenseEntry } from "@/features/khata/types";
@@ -148,6 +149,7 @@ export default function PartyDetailScreen() {
                 contentContainerStyle={{ paddingBottom: 96 }}
                 ListHeaderComponent={
                     <>
+                        <DataModeBar />
                         <View className="gap-3 p-4">
                             <Text className="font-jakarta text-xs text-text-secondary-muted">
                                 {partyTypeLabel(party.type)} · {party.phone ?? t("noNumber")}

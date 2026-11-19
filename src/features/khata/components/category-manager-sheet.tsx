@@ -7,6 +7,7 @@ import { Alert, Pressable, Text, View } from "react-native";
 import { BottomSheet } from "@/components/ui/bottom-sheet";
 import { ChipGroup } from "@/components/ui/chip-group";
 import { Field, FormButton, Input } from "@/components/ui/form";
+import { useBusinessData } from "@/features/khata/hooks/use-business-data";
 import { useKhataStore } from "@/features/khata/store/khata-store";
 import { type EntryKind, type ICategory, KHATA_LABELS } from "@/features/khata/types";
 import { cn } from "@/lib/cn";
@@ -26,7 +27,7 @@ const SWATCH: Record<ICategory["color"], string> = {
 type Props = { visible: boolean; onClose: () => void };
 
 export function CategoryManagerSheet({ visible, onClose }: Props) {
-    const categories = useKhataStore((s) => s.categories);
+    const { categories } = useBusinessData();
     const addCategory = useKhataStore((s) => s.addCategory);
     const deleteCategory = useKhataStore((s) => s.deleteCategory);
 

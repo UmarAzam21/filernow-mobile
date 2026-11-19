@@ -19,10 +19,9 @@ type Props = { visible: boolean; kind: Kind; editing?: IExpenseEntry | null; onC
 type Errors = { subject?: string; amount?: string; category?: string; card?: string };
 
 export function DetailedEntrySheet({ visible, kind, editing, onClose }: Props) {
-    const categories = useKhataStore((s) => s.categories);
     const addEntry = useKhataStore((s) => s.addEntry);
     const updateEntry = useKhataStore((s) => s.updateEntry);
-    const { cards } = useBusinessData();
+    const { cards, categories } = useBusinessData();
     const labels = KHATA_LABELS[kind];
 
     const categoryOptions = useMemo(() => categories.filter((c) => c.kind === kind), [categories, kind]);

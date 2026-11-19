@@ -113,10 +113,13 @@
     "blank": "Blank",
     "startFresh": "Start Fresh",
     "loadDemo": "Load Demo Data",
-    "replaceTitle": "Your current data will be replaced",
-    "replaceMessage": "Are you sure?"
+    "replaceTitle": "Switch data mode?",
+    "loadDemoMessage": "Demo data will replace the current Khata view. Your live account data will not be changed. Continue?",
+    "startFreshMessage": "Your demo data and any changes you made to it will be deleted. Start fresh?"
   },
   "toast": {
+    "demoLoaded": "Demo data loaded",
+    "cleared": "Demo data cleared",
     "saved": "{{name}} saved",
     "updated": "{{name}} updated",
     "deleted": "{{name}} deleted",

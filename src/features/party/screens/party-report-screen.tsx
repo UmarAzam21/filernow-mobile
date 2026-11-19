@@ -8,8 +8,8 @@ import { ActivityIndicator, FlatList, Pressable, Text, View } from "react-native
 import { DateTimeField } from "@/components/ui/date-time-field";
 import { Field, Input } from "@/components/ui/form";
 import { PlaceholderScreen } from "@/components/ui/placeholder-screen";
+import { DataModeBar } from "@/features/khata/components/data-mode-bar";
 import { buildLedger, debtLabel } from "@/features/khata/lib/debt";
-import { useKhataStore } from "@/features/khata/store/khata-store";
 import { LedgerHeader, LedgerRowItem } from "@/features/party/components/ledger";
 import { PartyBalanceCard } from "@/features/party/components/party-balance-card";
 import { type ExportInput, exportCsv, exportPdf, exportXlsx } from "@/features/party/lib/party-export";
@@ -92,6 +92,7 @@ export default function PartyReportScreen() {
                 contentContainerStyle={{ paddingBottom: 24 }}
                 ListHeaderComponent={
                     <>
+                        <DataModeBar />
                         <View className="gap-3 p-4">
                             <View className="rounded-brand-12 border border-border-clr bg-white p-3">
                                 <Field label={t("report.search")}>

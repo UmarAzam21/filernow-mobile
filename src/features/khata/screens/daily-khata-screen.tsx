@@ -11,6 +11,7 @@ import { OptionSheet } from "@/components/ui/option-sheet";
 import { useActiveBusiness } from "@/features/business/store/business-store";
 import { CardsManager } from "@/features/khata/components/cards-manager";
 import { CategoryManagerSheet } from "@/features/khata/components/category-manager-sheet";
+import { DataModeBar } from "@/features/khata/components/data-mode-bar";
 import { DailyCharts } from "@/features/khata/components/daily-charts";
 import { KhataSyncBar } from "@/features/khata/components/khata-sync-bar";
 import { DetailedEntrySheet } from "@/features/khata/components/detailed-entry-sheet";
@@ -86,8 +87,7 @@ export default function DailyKhataScreen() {
     const { t } = useTranslation(["khata", "common"]);
     const router = useRouter();
     const business = useActiveBusiness();
-    const { entries, parties, cards } = useBusinessData();
-    const categories = useKhataStore((s) => s.categories);
+    const { entries, parties, cards, categories } = useBusinessData();
     const deleteEntry = useKhataStore((s) => s.deleteEntry);
     const sync = useKhataStore((s) => s.sync);
     const syncing = useKhataStore((s) => s.syncing);
@@ -240,6 +240,7 @@ export default function DailyKhataScreen() {
                 ListHeaderComponent={
                     <View>
                         <KhataSyncBar />
+                        <DataModeBar />
 
                         <View className="flex-row flex-wrap gap-3 px-4 pt-4">
                             {stats.map((item) => (
